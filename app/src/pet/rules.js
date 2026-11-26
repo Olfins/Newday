@@ -9,10 +9,7 @@ import { nh } from '../stats';
 export const XP = { p: 30, c: 10 };
 export const STEP = 250;
 export const STAGES = ['Chaton', 'Jeune chat', 'Adulte', 'PDG'];
-export const KINDS = {
-  noir: { label: 'Chat noir', sub: 'garçon · costume et cravate', name: 'Charbon', il: 'il' },
-  roux: { label: 'Chatte rousse', sub: 'fille · tailleur et nœud', name: 'Caramel', il: 'elle' },
-};
+
 
 // Nourriture gagnée depuis l'adoption, calculée à partir de tes habitudes et de ton agenda.
 export function earned(S, T) {
@@ -50,6 +47,11 @@ export function feed(s, T, type) {
   s.pet.last = T;
 }
 
-export function adopt(s, T, kind, name) {
-  s.pet = { kind, name: name || KINDS[kind].name, since: T, fed: { p: 0, c: 0 }, xp: 0, last: null };
+export function adopt(s, T, look, name) {
+  s.pet = { look, name: name || 'Minou', since: T, fed: { p: 0, c: 0 }, xp: 0, last: null };
+}
+// Change l'apparence et le prénom, sans toucher à l'XP.
+export function restyle(s, look, name) {
+  s.pet.look = look;
+  if (name) s.pet.name = name;
 }

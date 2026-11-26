@@ -5,43 +5,25 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { C } from '../theme';
 import { nh } from '../stats';
 import { Btn, Card, Field, Grid, H, Mu, Row } from '../components/ui';
-import Cat, { Bowl, CatDrawing } from '../pet/Cat';
+import Cat, { Bowl } from '../pet/Cat';
+import Creator from '../pet/Creator';
+import { DEFAULT_LOOK, lookOf, SEXES } from '../pet/looks';
 import { PomodoroCard, BREAK_TEXT, clock, remaining, usePomodoro } from '../pet/Pomodoro';
-import { adopt, feed, KINDS, moodOf, pantry, STAGES, STEP, stageOf, XP } from '../pet/rules';
+import { adopt, feed, moodOf, restyle, pantry, STAGES, STEP, stageOf, XP } from '../pet/rules';
 
 export default function Pet(p) {
   return p.S.pet ? <Home {...p} /> : <Adopt {...p} />;
 }
 
-// ---------- Adoption ----------
-function Adopt({ S, update, T, wide }) {
-  const [kind, setKind] = useState('noir');
-  const [name, setName] = useState(KINDS.noir.name);
-  const pick = (k) => { setKind(k); setName(KINDS[k].name); };
+// ---------- Adoption : on crée son chat ----------
+function Adopt({ update, T, wide }) {
   return (
     <>
       <View>
-        <Text style={{ color: C.tx, fontSize: 22, fontWeight: '700' }}>Adopte ton compagnon</Text>
-        <Mu style={{ marginTop: 4 }}>Il commence chaton et grandit quand tu tiens tes habitudes. Choisis-le :</Mu>
+        <Text style={{ color: C.tx, fontSize: 22, fontWeight: '700' }}>Crée ton compagnon</Text>
+        <Mu style={{ marginTop: 4 }}>Il commence chaton et grandit quand tu tiens tes habitudes. Choisis chaque détail, tu pourras le changer plus tard.</Mu>
       </View>
-      <Row style={{ gap: 12, alignItems: 'stretch' }}>
-        {Object.entries(KINDS).map(([k, v]) => {
-          const on = kind === k;
-          return (
-            <Pressable key={k} onPress={() => pick(k)} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={v.label}
-              style={{ flex: 1, alignItems: 'center', padding: 12, borderRadius: 24, backgroundColor: C.card, borderWidth: on ? 2 : 1, borderColor: on ? C.pri : C.line }}>
-              <CatDrawing kind={k} stage={0} mood="happy" size={130} />
-              <Text style={{ color: C.tx, fontWeight: '700', marginTop: 4 }}>{v.label}</Text>
-              <Mu style={{ fontSize: 12, textAlign: 'center' }}>{v.sub}</Mu>
-            </Pressable>
-          );
-        })}
-      </Row>
-      <Card>
-        <H>Son prénom</H>
-        <Field value={name} onChangeText={setName} placeholder={KINDS[kind].name} maxLength={18} />
-        <Btn label={'Adopter ' + (name.trim() || KINDS[kind].name)} active onPress={() => update((s) => adopt(s, T, kind, name.trim()))} style={{ marginTop: 14, paddingVertical: 13 }} />
-      </Card>
+      <Creator initial={DEFAULT_LOOK} wide={wide} onDone={(look, name) => update((s) => adopt(s, T, look, name))} />
       <Rules />
     </>
   );
@@ -53,7 +35,9 @@ function Home({ S, update, T, wide }) {
   const st = stageOf(pet.xp || 0);
   const mood = moodOf(pet, T);
   const food = pantry(S, T);
-  const k = KINDS[pet.kind];
+  const look = lookOf(pet);
+  const k = SEXES[look.sex] || SEXES.m;
+  const [edit, setEdit] = useState(false);
   const max = st === STAGES.length - 1;
   const into = (pet.xp || 0) - st * STEP;
   const daysLeft = Math.ceil((STEP - into) / 40);
@@ -74,11 +58,19 @@ function Home({ S, update, T, wide }) {
   };
 
   const moodText = {
-    happy: pet.name + ' a bien mangé, ' + k.il + ' est ' + (pet.kind === 'roux' ? 'ravie' : 'ravi') + '.',
-    ok: pet.name + ' va bien. Donne-' + (pet.kind === 'roux' ? 'lui' : 'lui') + ' à manger aujourd’hui.',
+    happy: pet.name + ' a bien mangé, ' + k.il + ' est ravi' + k.e + '.',
+    ok: pet.name + ' va bien. Donne-lui à manger aujourd’hui.',
     hungry: pet.name + ' a faim… Coche tes habitudes pour gagner de la pâtée.',
   }[mood];
   const shownText = scene === 'work' ? pet.name + ' travaille avec toi.' : scene ? pet.name + ' ' + BREAK_TEXT[scene] + '.' : moodText;
+
+  if (edit) {
+    return (
+      <Creator initial={look} initialName={pet.name} editing stage={st} wide={wide}
+        onCancel={() => setEdit(false)}
+        onDone={(l, n) => { update((s) => restyle(s, l, n)); setEdit(false); setBubble({ id: Date.now(), text: 'Nouveau look !' }); }} />
+    );
+  }
 
   return (
     <Grid wide={wide}>
@@ -92,9 +84,13 @@ function Home({ S, update, T, wide }) {
               </Text>
             </View>
           </Row>
-          <Cat kind={pet.kind} stage={st} mood={mood} size={230} name={pet.name} message={bubble} scene={scene} />
+          <Cat look={look} stage={st} mood={mood} size={230} name={pet.name} message={bubble} scene={scene} />
           <Text style={{ color: C.tx, fontSize: 28, fontWeight: '700', letterSpacing: -0.5 }}>{pet.name}</Text>
           <Mu style={{ textAlign: 'center', marginTop: 2 }}>{shownText}</Mu>
+          <Pressable onPress={() => setEdit(true)} accessibilityRole="button" accessibilityLabel="Modifier son apparence"
+            style={{ marginTop: 10, paddingVertical: 6, paddingHorizontal: 14, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.7)' }}>
+            <Text style={{ color: C.tx, fontSize: 13, fontWeight: '600' }}>Modifier son apparence</Text>
+          </Pressable>
           <View style={{ alignSelf: 'stretch', marginTop: 14 }}>
             <Row style={{ justifyContent: 'space-between' }}>
               <Text style={{ color: C.tx, fontWeight: '600', fontSize: 13 }}>{max ? 'Niveau maximum' : 'Vers « ' + STAGES[st + 1] + ' »'}</Text>

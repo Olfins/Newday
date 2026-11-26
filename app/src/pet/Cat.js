@@ -1,27 +1,21 @@
-// Les chats dessinés en traits simples (pas d'images) : costume, cravate ou nœud,
-// quatre tailles (chaton, jeune, adulte, PDG) et trois humeurs.
+// Les chats dessinés en traits simples (pas d'images). L'apparence vient des choix
+// de l'utilisateur (voir looks.js) : pelage, motif, yeux, coiffure, tenue, couleurs.
+// Quatre tailles (chaton, jeune, adulte, PDG) et trois humeurs.
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, PanResponder, Text, Vibration, View } from 'react-native';
 import Svg, { Circle, Ellipse, G, Line, Path, Polygon, Rect } from 'react-native-svg';
-
-const LOOKS = {
-  noir: {
-    fur: '#2B2B35', furD: '#1B1B22', muzzle: '#3B3B48', ear: '#E9A3B4', eye: '#C9E265', pupil: '#15151B',
-    line: '#A3A3B8', suit: '#2F3B5C', suitD: '#222C47', accent: '#6C5FD4',
-  },
-  roux: {
-    fur: '#F2A65A', furD: '#D9823A', muzzle: '#FBE3C8', ear: '#F6B0BE', eye: '#3A2A1E', pupil: '#3A2A1E',
-    line: '#B9773A', suit: '#4B3F72', suitD: '#3A3060', accent: '#F08A3C',
-  },
-};
+import { lookOf, palette } from './looks';
 
 const pts = (a) => a.map((p) => p.join(',')).join(' ');
 const toward = (p, c, f) => [p[0] + (c[0] - p[0]) * f, p[1] + (c[1] - p[1]) * f];
 
+// look : l'apparence choisie ; kind : ancien choix ('noir' ou 'roux'), utilisé si look manque.
 // scene : null (normal), 'work' (au PC), ou une pause : 'coffee', 'walk', 'snack', 'water'.
 // t : temps en secondes, pour animer la scène.
-export function CatDrawing({ kind = 'noir', stage = 0, mood: mood0 = 'happy', size = 200, tail = 0, blink = false, scene = null, t = 0 }) {
-  const P = LOOKS[kind] || LOOKS.noir;
+export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happy', size = 200, tail = 0, blink = false, scene = null, t = 0 }) {
+  const P = palette(look || lookOf(kind));
+  const L = P.look;
+  const lidC = P.dark ? P.eye : '#3A2A1E';
   // Gorgée / bouchée : 0 = main en bas, 1 = main à la bouche.
   const holds = scene === 'coffee' || scene === 'water' || scene === 'snack';
   const sipRaw = (Math.sin(t * 1.5) + 1) / 2;
@@ -44,21 +38,27 @@ export function CatDrawing({ kind = 'noir', stage = 0, mood: mood0 = 'happy', si
     );
   };
 
+  // Cils pour une fille.
+  const lashes = (s, ex, ey, r) => (L.sex === 'f' ? (
+    <Path key={'l' + s} d={`M${ex + s * r * 0.75} ${ey - r * 0.55} l${s * 4} -3 M${ex + s * r * 0.95} ${ey - r * 0.1} l${s * 4.5} -1`} stroke={P.dark ? P.line : '#3A2A1E'} strokeWidth="1.8" strokeLinecap="round" />
+  ) : null);
+
   const eye = (s) => {
     const ex = cx + s * hr * 0.4, ey = hy - hr * 0.04;
     if (mood === 'happy') {
-      return <Path key={s} d={`M${ex - er} ${ey + 2} Q${ex} ${ey - er * 1.2} ${ex + er} ${ey + 2}`} stroke={kind === 'noir' ? P.eye : P.pupil} strokeWidth="3.2" strokeLinecap="round" fill="none" />;
+      return <G key={s}><Path d={`M${ex - er} ${ey + 2} Q${ex} ${ey - er * 1.2} ${ex + er} ${ey + 2}`} stroke={lidC} strokeWidth="3.2" strokeLinecap="round" fill="none" />{lashes(s, ex, ey + 2, er)}</G>;
     }
     const r = mood === 'hungry' ? er * 0.85 : er;
-    if (blink) return <Path key={s} d={`M${ex - r} ${ey + 1} Q${ex} ${ey + r * 0.6} ${ex + r} ${ey + 1}`} stroke={kind === 'noir' ? P.eye : P.pupil} strokeWidth="3" strokeLinecap="round" fill="none" />;
+    if (blink) return <G key={s}><Path d={`M${ex - r} ${ey + 1} Q${ex} ${ey + r * 0.6} ${ex + r} ${ey + 1}`} stroke={lidC} strokeWidth="3" strokeLinecap="round" fill="none" />{lashes(s, ex, ey + 2, r)}</G>;
     return (
       <G key={s}>
-        <Circle cx={ex} cy={ey} r={r} fill={kind === 'noir' ? P.eye : '#FFFFFF'} />
+        <Circle cx={ex} cy={ey} r={r} fill={P.eye} />
         <Ellipse cx={ex} cy={ey + 0.5} rx={r * 0.45} ry={r * 0.8} fill={P.pupil} />
         <Circle cx={ex + r * 0.3} cy={ey - r * 0.35} r={r * 0.22} fill="#FFFFFF" />
+        {lashes(s, ex, ey, r)}
         {mood === 'hungry' ? (
           <>
-            <Path d={`M${ex - r - 1} ${ey} L${ex + r + 1} ${ey} A${r + 1} ${r + 1} 0 0 0 ${ex - r - 1} ${ey} Z`} fill={P.fur} />
+            <Path d={`M${ex - r - 1} ${ey} L${ex + r + 1} ${ey} A${r + 1} ${r + 1} 0 0 0 ${ex - r - 1} ${ey} Z`} fill={s === 1 && L.pat === 'tache' ? P.patch : P.fur} />
             <Line x1={ex - s * r * 1.1} y1={ey - r * 1.6} x2={ex + s * r * 0.9} y2={ey - r * 1.15} stroke={P.line} strokeWidth="2" strokeLinecap="round" />
           </>
         ) : null}
@@ -76,6 +76,44 @@ export function CatDrawing({ kind = 'noir', stage = 0, mood: mood0 = 'happy', si
       ? `M${cx - 8} ${my} Q${cx - 4} ${my + 7} ${cx} ${my} Q${cx + 4} ${my + 7} ${cx + 8} ${my}`
       : `M${cx - 6} ${my} Q${cx - 3} ${my + 4} ${cx} ${my} Q${cx + 3} ${my + 4} ${cx + 6} ${my}`;
 
+  const jacket = L.out === 'cravate' || L.out === 'noeud';
+  const tie = (
+    <G fill={P.accent}>
+      <Polygon points={pts([[cx - 5, top + 2], [cx + 5, top + 2], [cx + 3, top + 9], [cx - 3, top + 9]])} />
+      <Polygon points={pts([[cx - 3, top + 9], [cx + 3, top + 9], [cx + 6, top + bh * 0.34], [cx, top + bh * 0.42], [cx - 6, top + bh * 0.34]])} />
+    </G>
+  );
+  const bodyPath = `M${cx - bw / 2} ${base} L${cx - bw / 2} ${top + 18} Q${cx - bw / 2} ${top} ${cx - bw / 2 + 18} ${top} L${cx + bw / 2 - 18} ${top} Q${cx + bw / 2} ${top} ${cx + bw / 2} ${top + 18} L${cx + bw / 2} ${base} Z`;
+
+  // Coiffure, dessinée sur le haut de la tête.
+  const hair = () => {
+    const H = P.hair;
+    switch (L.hair) {
+      case 'meche':
+        return <Path d={`M${cx - 7} ${hy - hr * 0.78} Q${cx - 6} ${hy - hr * 1.3} ${cx + 10} ${hy - hr * 1.2} Q${cx + 1} ${hy - hr * 1.08} ${cx + 4} ${hy - hr * 0.8} Z`} fill={H} />;
+      case 'frange':
+        return <Path d={`M${cx - hr * 0.64} ${hy - hr * 0.42} Q${cx - hr * 0.52} ${hy - hr * 0.98} ${cx} ${hy - hr * 0.96} Q${cx + hr * 0.52} ${hy - hr * 0.98} ${cx + hr * 0.64} ${hy - hr * 0.42} L${cx + hr * 0.42} ${hy - hr * 0.6} L${cx + hr * 0.22} ${hy - hr * 0.4} L${cx} ${hy - hr * 0.6} L${cx - hr * 0.22} ${hy - hr * 0.4} L${cx - hr * 0.42} ${hy - hr * 0.6} Z`} fill={H} strokeLinejoin="round" stroke={H} strokeWidth="2" />;
+      case 'crete':
+        return <Polygon points={pts([[cx - 12, hy - hr * 0.8], [cx - 10, hy - hr * 1.22], [cx - 4, hy - hr * 0.9], [cx, hy - hr * 1.36], [cx + 4, hy - hr * 0.9], [cx + 10, hy - hr * 1.22], [cx + 12, hy - hr * 0.8]])} fill={H} stroke={H} strokeWidth="2" strokeLinejoin="round" />;
+      case 'chignon':
+        return (
+          <G>
+            <Circle cx={cx} cy={hy - hr * 1.02} r={hr * 0.27} fill={H} />
+            <Rect x={cx - hr * 0.22} y={hy - hr * 0.86} width={hr * 0.44} height="4" rx="2" fill={P.accent} />
+          </G>
+        );
+      case 'longs':
+        return (
+          <G fill={H}>
+            <Path d={`M${cx - hr * 0.2} ${hy - hr * 0.9} Q${cx - hr * 1.12} ${hy - hr * 0.7} ${cx - hr * 1.02} ${hy + hr * 0.8} Q${cx - hr * 0.8} ${hy + hr * 0.4} ${cx - hr * 0.7} ${hy - hr * 0.3} Q${cx - hr * 0.45} ${hy - hr * 0.62} ${cx} ${hy - hr * 0.7} Z`} />
+            <Path d={`M${cx + hr * 0.2} ${hy - hr * 0.9} Q${cx + hr * 1.12} ${hy - hr * 0.7} ${cx + hr * 1.02} ${hy + hr * 0.8} Q${cx + hr * 0.8} ${hy + hr * 0.4} ${cx + hr * 0.7} ${hy - hr * 0.3} Q${cx + hr * 0.45} ${hy - hr * 0.62} ${cx} ${hy - hr * 0.7} Z`} />
+          </G>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <Svg width={size} height={size * 1.1} viewBox="0 0 200 220">
       <Ellipse cx={cx} cy={base + 5} rx={bw * 0.75} ry="5" fill="rgba(23,23,29,0.08)" />
@@ -83,6 +121,14 @@ export function CatDrawing({ kind = 'noir', stage = 0, mood: mood0 = 'happy', si
       <G transform={`rotate(${tail.toFixed(1)} ${cx + bw / 2 - 6} ${base - 10})`}>
         <Path d={`M${cx + bw / 2 - 6} ${base - 10} C${cx + bw / 2 + 30} ${base - 4} ${cx + bw / 2 + 36} ${base - 50} ${cx + bw / 2 + 18} ${base - 60}`}
           stroke={P.fur} strokeWidth="10" strokeLinecap="round" fill="none" />
+        {L.pat === 'chaussettes' && L.fur !== 'blanc' ? <Circle cx={cx + bw / 2 + 18} cy={base - 60} r="5" fill="#FFFFFF" /> : null}
+        {L.pat === 'tigre' ? (
+          <G stroke={P.furD} strokeWidth="3" strokeLinecap="round">
+            <Line x1={cx + bw / 2 + 22} y1={base - 14} x2={cx + bw / 2 + 18} y2={base - 4} />
+            <Line x1={cx + bw / 2 + 32} y1={base - 30} x2={cx + bw / 2 + 24} y2={base - 26} />
+            <Line x1={cx + bw / 2 + 30} y1={base - 46} x2={cx + bw / 2 + 22} y2={base - 46} />
+          </G>
+        ) : null}
       </G>
       {/* Mallette du PDG */}
       {stage === 3 ? (
@@ -92,39 +138,60 @@ export function CatDrawing({ kind = 'noir', stage = 0, mood: mood0 = 'happy', si
           <Line x1={cx - bw / 2 - 32} y1={base - 18} x2={cx - bw / 2 - 8} y2={base - 18} stroke="#4A3220" strokeWidth="1.5" />
         </G>
       ) : null}
-      {/* Corps = veste de costume */}
-      <Path d={`M${cx - bw / 2} ${base} L${cx - bw / 2} ${top + 18} Q${cx - bw / 2} ${top} ${cx - bw / 2 + 18} ${top} L${cx + bw / 2 - 18} ${top} Q${cx + bw / 2} ${top} ${cx + bw / 2} ${top + 18} L${cx + bw / 2} ${base} Z`} fill={P.suit} />
-      <Polygon points={pts([[cx - 13, top], [cx + 13, top], [cx, top + bh * 0.44]])} fill="#FFFFFF" />
-      <Polygon points={pts([[cx - 13, top], [cx - 26, top + 3], [cx - 2, top + bh * 0.5]])} fill={P.suitD} />
-      <Polygon points={pts([[cx + 13, top], [cx + 26, top + 3], [cx + 2, top + bh * 0.5]])} fill={P.suitD} />
-      {kind === 'noir' ? (
-        <G fill={P.accent}>
-          <Polygon points={pts([[cx - 5, top + 2], [cx + 5, top + 2], [cx + 3, top + 9], [cx - 3, top + 9]])} />
-          <Polygon points={pts([[cx - 3, top + 9], [cx + 3, top + 9], [cx + 6, top + bh * 0.34], [cx, top + bh * 0.42], [cx - 6, top + bh * 0.34]])} />
+      {/* Corps = la tenue */}
+      {L.out === 'gilet' ? (
+        <G>
+          <Path d={bodyPath} fill="#FFFFFF" stroke="#E2E0EA" strokeWidth="1.5" />
+          {tie}
+          <Path d={`M${cx - bw / 2 + 6} ${base} L${cx - bw / 2 + 6} ${top + bh * 0.22} L${cx - 7} ${top + bh * 0.22} L${cx} ${top + bh * 0.62} L${cx + 7} ${top + bh * 0.22} L${cx + bw / 2 - 6} ${top + bh * 0.22} L${cx + bw / 2 - 6} ${base} Z`} fill={P.suit} />
+          <Circle cx={cx} cy={top + bh * 0.72} r="2.2" fill={P.suitD} />
+          <Circle cx={cx} cy={top + bh * 0.86} r="2.2" fill={P.suitD} />
+        </G>
+      ) : L.out === 'col' ? (
+        <G>
+          <Path d={bodyPath} fill={P.suit} />
+          <Rect x={cx - 22} y={top - 4} width="44" height="12" rx="6" fill={P.suitD} />
+          <G stroke={P.suit} strokeWidth="1.5">
+            {[-14, -7, 0, 7, 14].map((d) => <Line key={d} x1={cx + d} y1={top - 2} x2={cx + d} y2={top + 6} />)}
+          </G>
+          <Circle cx={cx} cy={top + bh * 0.45} r="4" fill="none" stroke={P.accent} strokeWidth="2" />
+          <Line x1={cx} y1={top + 8} x2={cx} y2={top + bh * 0.45 - 4} stroke={P.accent} strokeWidth="1.2" />
         </G>
       ) : (
-        <G fill={P.accent}>
-          <Path d={`M${cx} ${top + 6} L${cx - 13} ${top} L${cx - 13} ${top + 12} Z`} />
-          <Path d={`M${cx} ${top + 6} L${cx + 13} ${top} L${cx + 13} ${top + 12} Z`} />
-          <Circle cx={cx} cy={top + 6} r="3.5" />
+        <G>
+          <Path d={bodyPath} fill={P.suit} />
+          <Polygon points={pts([[cx - 13, top], [cx + 13, top], [cx, top + bh * 0.44]])} fill="#FFFFFF" />
+          <Polygon points={pts([[cx - 13, top], [cx - 26, top + 3], [cx - 2, top + bh * 0.5]])} fill={P.suitD} />
+          <Polygon points={pts([[cx + 13, top], [cx + 26, top + 3], [cx + 2, top + bh * 0.5]])} fill={P.suitD} />
+          {L.out === 'cravate' ? tie : (
+            <G fill={P.accent}>
+              <Path d={`M${cx} ${top + 6} L${cx - 13} ${top} L${cx - 13} ${top + 12} Z`} />
+              <Path d={`M${cx} ${top + 6} L${cx + 13} ${top} L${cx + 13} ${top + 12} Z`} />
+              <Circle cx={cx} cy={top + 6} r="3.5" />
+            </G>
+          )}
+          <Circle cx={cx} cy={top + bh * 0.6} r="2.4" fill={P.suitD} />
+          <Circle cx={cx} cy={top + bh * 0.76} r="2.4" fill={P.suitD} />
+          {stage >= 2 ? <Polygon points={pts([[cx - bw / 2 + 9, top + bh * 0.34], [cx - bw / 2 + 21, top + bh * 0.34], [cx - bw / 2 + 15, top + bh * 0.26]])} fill="#FFFFFF" /> : null}
         </G>
       )}
-      <Circle cx={cx} cy={top + bh * 0.6} r="2.4" fill={P.suitD} />
-      <Circle cx={cx} cy={top + bh * 0.76} r="2.4" fill={P.suitD} />
-      {stage >= 2 ? <Polygon points={pts([[cx - bw / 2 + 9, top + bh * 0.34], [cx - bw / 2 + 21, top + bh * 0.34], [cx - bw / 2 + 15, top + bh * 0.26]])} fill="#FFFFFF" /> : null}
       {/* Pattes */}
-      <Ellipse cx={cx - bw / 4} cy={base - (scene === 'walk' ? Math.max(0, Math.sin(t * 7)) * 6 : 0)} rx={bw / 6} ry="7" fill={P.fur} />
-      <Ellipse cx={cx + bw / 4} cy={base - (scene === 'walk' ? Math.max(0, -Math.sin(t * 7)) * 6 : 0)} rx={bw / 6} ry="7" fill={P.fur} />
+      <Ellipse cx={cx - bw / 4} cy={base - (scene === 'walk' ? Math.max(0, Math.sin(t * 7)) * 6 : 0)} rx={bw / 6} ry="7" fill={P.paw} />
+      <Ellipse cx={cx + bw / 4} cy={base - (scene === 'walk' ? Math.max(0, -Math.sin(t * 7)) * 6 : 0)} rx={bw / 6} ry="7" fill={P.paw} />
       {/* Tête */}
       {ear(-1)}{ear(1)}
       <Ellipse cx={cx} cy={hy} rx={hr} ry={hr * 0.9} fill={P.fur} />
-      {kind === 'roux' ? (
+      {L.pat === 'tache' ? <Ellipse cx={cx + hr * 0.44} cy={hy - hr * 0.12} rx={hr * 0.4} ry={hr * 0.36} fill={P.patch} /> : null}
+      {L.pat === 'tigre' ? (
         <G stroke={P.furD} strokeWidth="3" strokeLinecap="round">
           <Line x1={cx - 9} y1={hy - hr * 0.84} x2={cx - 7} y2={hy - hr * 0.6} />
           <Line x1={cx} y1={hy - hr * 0.88} x2={cx} y2={hy - hr * 0.62} />
           <Line x1={cx + 9} y1={hy - hr * 0.84} x2={cx + 7} y2={hy - hr * 0.6} />
+          <Line x1={cx - hr * 0.98} y1={hy + hr * 0.02} x2={cx - hr * 0.8} y2={hy + hr * 0.06} />
+          <Line x1={cx + hr * 0.98} y1={hy + hr * 0.02} x2={cx + hr * 0.8} y2={hy + hr * 0.06} />
         </G>
       ) : null}
+      {hair()}
       <Ellipse cx={cx} cy={hy + hr * 0.33} rx={hr * 0.38} ry={hr * 0.25} fill={P.muzzle} />
       {eye(-1)}{eye(1)}
       {mood === 'happy' ? (
@@ -134,7 +201,7 @@ export function CatDrawing({ kind = 'noir', stage = 0, mood: mood0 = 'happy', si
         </G>
       ) : null}
       <Path d={`M${cx - 5} ${hy + hr * 0.18} L${cx + 5} ${hy + hr * 0.18} L${cx} ${hy + hr * 0.27} Z`} fill={P.ear} strokeLinejoin="round" />
-      <Path d={mouth} stroke={kind === 'noir' ? P.line : '#5A3A22'} strokeWidth="2" strokeLinecap="round" fill="none" />
+      <Path d={mouth} stroke={P.mouth} strokeWidth="2" strokeLinecap="round" fill="none" />
       <G stroke={P.line} strokeWidth="1.4" strokeLinecap="round">
         {[-1, 1].map((s) => [-4, 1, 6].map((d) => (
           <Line key={s + '' + d} x1={cx + s * hr * 0.42} y1={hy + hr * 0.3 + d * 0.4} x2={cx + s * hr * 1.08} y2={hy + hr * 0.26 + d * 1.6} />
@@ -160,15 +227,15 @@ function Desk({ P, cx, bw, top, t }) {
   const l1 = lift(0), l2 = lift(Math.PI);
   return (
     <G>
-      <Line x1={cx - bw / 2 + 8} y1={top + 18} x2={lx} y2={py - l1} stroke={P.suit} strokeWidth="12" strokeLinecap="round" />
-      <Line x1={cx + bw / 2 - 8} y1={top + 18} x2={rx} y2={py - l2} stroke={P.suit} strokeWidth="12" strokeLinecap="round" />
+      <Line x1={cx - bw / 2 + 8} y1={top + 18} x2={lx} y2={py - l1} stroke={P.arm} strokeWidth="12" strokeLinecap="round" />
+      <Line x1={cx + bw / 2 - 8} y1={top + 18} x2={rx} y2={py - l2} stroke={P.arm} strokeWidth="12" strokeLinecap="round" />
       <Rect x="6" y="196" width="188" height="10" rx="4" fill="#C9AE8E" />
       <Rect x="6" y="204" width="188" height="6" rx="3" fill="#B39674" />
       <Rect x={cx - 38} y="150" width="76" height="46" rx="6" fill="#E4E3EC" stroke="#C9C8D6" strokeWidth="2" />
       <Circle cx={cx} cy="173" r="5" fill="#6C5FD4" opacity={0.6 + 0.4 * Math.abs(Math.sin(t * 2))} />
       <Rect x={cx - 44} y="193" width="88" height="5" rx="2.5" fill="#B9B8C8" />
-      <Ellipse cx={lx} cy={py - l1} rx="9" ry="6" fill={P.fur} />
-      <Ellipse cx={rx} cy={py - l2} rx="9" ry="6" fill={P.fur} />
+      <Ellipse cx={lx} cy={py - l1} rx="9" ry="6" fill={P.paw} />
+      <Ellipse cx={rx} cy={py - l2} rx="9" ry="6" fill={P.paw} />
       {/* Petits traits de frappe */}
       {l1 > 3 ? <Path d={`M${lx - 12} ${py - 12} l-4 -4 M${lx - 4} ${py - 15} l0 -5`} stroke="#8A8998" strokeWidth="1.6" strokeLinecap="round" /> : null}
       {l2 > 3 ? <Path d={`M${rx + 12} ${py - 12} l4 -4 M${rx + 4} ${py - 15} l0 -5`} stroke="#8A8998" strokeWidth="1.6" strokeLinecap="round" /> : null}
@@ -224,10 +291,10 @@ function Hold({ P, scene, cx, bw, top, bh, hr, my, sip, t }) {
   }
   return (
     <G>
-      <Line x1={cx + bw / 2 - 8} y1={top + 16} x2={hx} y2={hy + 4} stroke={P.suit} strokeWidth="12" strokeLinecap="round" />
+      <Line x1={cx + bw / 2 - 8} y1={top + 16} x2={hx} y2={hy + 4} stroke={P.arm} strokeWidth="12" strokeLinecap="round" />
       <G transform={`translate(${hx} ${hy}) scale(1.5) translate(${-hx} ${-hy})`}>
         {item}
-        <Ellipse cx={hx + 2} cy={hy + 5} rx="6" ry="5" fill={P.fur} />
+        <Ellipse cx={hx + 2} cy={hy + 5} rx="6" ry="5" fill={P.paw} />
       </G>
     </G>
   );
@@ -273,7 +340,7 @@ function FloatingHeart({ x, y, onDone }) {
 
 // Le chat vivant : il respire, cligne des yeux, bouge la queue, parle,
 // et réagit quand on le touche ou qu'on le caresse (glisser le doigt dessus).
-export default function Cat({ kind, stage, mood, size = 200, name, message, scene = null }) {
+export default function Cat({ look, kind, stage, mood, size = 200, name, message, scene = null }) {
   const breathe = useRef(new Animated.Value(0)).current;
   const hop = useRef(new Animated.Value(0)).current;
   const bubbleV = useRef(new Animated.Value(0)).current;
@@ -404,7 +471,7 @@ export default function Cat({ kind, stage, mood, size = 200, name, message, scen
             { scaleY: breathe.interpolate({ inputRange: [0, 1], outputRange: [1, 1.015] }) },
           ],
         }}>
-          <CatDrawing kind={kind} stage={stage} mood={shownMood} size={size} tail={purring || scene === 'walk' ? tail * 2 : tail} blink={blink && !purring} scene={scene} t={time} />
+          <CatDrawing look={look} kind={kind} stage={stage} mood={shownMood} size={size} tail={purring || scene === 'walk' ? tail * 2 : tail} blink={blink && !purring} scene={scene} t={time} />
         </Animated.View>
         </View>
         {hearts.map((h) => <FloatingHeart key={h.id} x={h.x} y={40 + size * 0.42} onDone={() => setHearts((a) => a.filter((z) => z.id !== h.id))} />)}
