@@ -38,6 +38,14 @@ export function normalize(o) {
   s.ws = Array.isArray(s.ws) ? s.ws : [];
   s.h.forEach((h) => (h.e = ''));
   delete s.theme;
+  // Anciennes données : la salle validée coche aussi l'habitude Salle.
+  const gid = gymHabitId(s);
+  if (gid) Object.keys(s.gym).forEach((k) => { const a = s.d[k] || (s.d[k] = []); if (!a.includes(gid)) a.push(gid); });
+  // Une séance commencée mais vide ne compte plus comme validée.
+  if (s.run && s.gym[s.run.k] && !s.run.prev && !s.gym[s.run.k].o && !Object.values(s.run.done || {}).some(Boolean)) {
+    delete s.gym[s.run.k];
+    if (gid && s.d[s.run.k]) s.d[s.run.k] = s.d[s.run.k].filter((x) => x !== gid);
+  }
   return s;
 }
 
@@ -84,6 +92,12 @@ export function useStore() {
 // ---- Actions (elles modifient la copie reçue) ----
 
 export function toggleHabit(s, k, id) {
+  // L'habitude Salle suit la carte Salle (et inversement).
+  if (id === gymHabitId(s)) {
+    if (gymDone(s, k)) gymReset(s, k);
+    else gymCheckIn(s, k, '');
+    return;
+  }
   const a = s.d[k] || (s.d[k] = []);
   const i = a.indexOf(id);
   if (i < 0) a.push(id);
@@ -138,27 +152,49 @@ export function addExam(s, name, k) {
   s.x.sort((a, b) => a.d.localeCompare(b.d));
 }
 
-// ---- Salle : check-in puis check-out ----
-// L'habitude "Salle" (id "gym") est validée au check-in.
-export function gymCheckIn(s, k, time) {
-  s.gym[k] = { i: time, o: '' };
+// ---- Salle ----
+// La carte Salle et l'habitude "Salle" de la semaine sont la même chose :
+// valider l'une coche l'autre, et décocher l'une décoche l'autre.
+
+// Trouve l'habitude Salle (id "gym", ou une habitude nommée Salle / Gym / Sport / Muscu).
+export function gymHabitId(s) {
+  const h = s.h.find((x) => x.id === 'gym') || s.h.find((x) => /^(salle|gym|sport|muscu)/i.test((x.n || '').trim()));
+  return h ? h.id : null;
+}
+function gymHabitOn(s, k) {
+  let id = gymHabitId(s);
+  if (!id) { s.h.unshift({ id: 'gym', n: 'Salle', e: '' }); id = 'gym'; }
   const a = s.d[k] || (s.d[k] = []);
-  if (s.h.some((h) => h.id === 'gym') && !a.includes('gym')) a.push('gym');
+  if (!a.includes(id)) a.push(id);
+}
+function gymHabitOff(s, k) {
+  const id = gymHabitId(s);
+  if (id && s.d[k]) s.d[k] = s.d[k].filter((x) => x !== id);
+}
+export function gymDone(s, k) {
+  const id = gymHabitId(s);
+  return !!(s.gym[k] || (id && (s.d[k] || []).includes(id)));
+}
+export function gymCheckIn(s, k, time) {
+  s.gym[k] = { i: time, o: (s.gym[k] && s.gym[k].o) || '' };
+  gymHabitOn(s, k);
 }
 export function gymCheckOut(s, k, time) {
   if (s.gym[k]) s.gym[k].o = time;
 }
+// Décoche la salle ce jour-là (et annule une séance en cours ce jour-là).
 export function gymReset(s, k) {
   delete s.gym[k];
-  if (s.d[k]) s.d[k] = s.d[k].filter((id) => id !== 'gym');
+  gymHabitOff(s, k);
+  if (s.run && s.run.k === k) delete s.run;
 }
 
 // ---- Séances de salle (module Salle) ----
 // s.run : la séance en cours ; s.ws : l'historique des séances terminées.
 export function startRun(s, k, level, session, time) {
   // On garde la séance déjà validée ce jour-là, pour la remettre si celle-ci est annulée.
+  // Ouvrir une séance ne valide rien : la salle n'est cochée qu'à la fin, si un exercice est fait.
   s.run = { k, l: level, s: session, start: time, ts: Date.now(), done: {}, sets: {}, kg: {}, prev: s.gym[k] || null };
-  if (!s.gym[k]) gymCheckIn(s, k, time);
 }
 
 // Termine la séance : enregistrée si au moins un exercice est coché, sinon annulée.
@@ -168,15 +204,12 @@ export function finishRun(s, time, lv, se) {
   delete s.run;
   const ex = se.exercises.map((x, i) => ({ n: x.name, done: !!r.done[i], sets: r.sets[i] || 0, kg: r.kg[i] || '' }));
   const done = ex.filter((x) => x.done).length;
-  if (!done) {
-    if (!r.prev) gymReset(s, r.k);
-    return false;
-  }
+  if (!done) return false;
   s.ws = s.ws || [];
   s.ws.push({ id: 'w' + Date.now(), d: r.k, start: r.start, end: time, mins: Math.max(1, Math.round((Date.now() - r.ts) / 60000)), level: lv.full, name: se.name, ex, done, total: ex.length });
   // Heures de salle : de la première arrivée du jour à la fin de cette séance.
-  s.gym[r.k] = { i: (r.prev && r.prev.i) || r.start, o: time };
-  const d = s.d[r.k] || (s.d[r.k] = []);
-  if (s.h.some((h) => h.id === 'gym') && !d.includes('gym')) d.push('gym');
+  const before = s.gym[r.k];
+  s.gym[r.k] = { i: (before && before.i) || r.start, o: time };
+  gymHabitOn(s, r.k);
   return true;
 }

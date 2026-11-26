@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { C, typeColor, TYPES } from '../theme';
 import { addDays, duration, fmt, hm, letter, LETTERS, minutes, mondayOf, toDate, weekOf } from '../dates';
 import { has, visibleTodos } from '../stats';
-import { gymCheckIn, gymCheckOut, gymReset, removeEvent, setMood, toggleHabit } from '../store';
+import { gymCheckIn, gymCheckOut, gymDone, gymReset, removeEvent, setMood, toggleHabit } from '../store';
 import { AddRow, Btn, Card, H, Icon, Mu, Row } from './ui';
 import { MoodPicker } from './bits';
 import { CheckIcon, DumbbellIcon, MoodIcon, MOOD_LABELS } from './icons';
@@ -108,20 +108,21 @@ export function GymCard({ S, update, T, k, style, onOpen }) {
   const fut = k > T;
   const running = S.run && S.run.k === k;
   const w = [...S.ws].reverse().find((x) => x.d === k);
-  const state = running ? 'run' : !g ? 'out' : g.o ? 'done' : 'in';
+  // La salle est validée seulement quand elle est cochée (carte ou habitude de la semaine).
+  const state = running ? 'run' : gymDone(S, k) ? 'done' : 'out';
   const on = state !== 'out';
-  // Aujourd'hui : la carte ouvre le module Salle. Autres jours : simple correction manuelle.
+  // Aujourd'hui : le rond ouvre le module Salle. Autres jours : simple correction manuelle.
   const press = () => {
     if (k === T) return onOpen();
     if (state === 'out') update((s) => { gymCheckIn(s, k, ''); gymCheckOut(s, k, ''); });
     else update((s) => gymReset(s, k));
   };
-  const info = state === 'run' ? 'En cours depuis ' + S.run.start
+  const undo = () => update((s) => gymReset(s, k));
+  const info = state === 'run' ? 'Commencée à ' + S.run.start + ', pas encore validée'
     : state === 'out' ? (fut ? 'Pas encore' : k === T ? 'Choisis ta séance' : 'Pas de séance')
     : w ? w.name + ' · ' + w.mins + ' min'
-    : state === 'in' ? (g.i ? 'Depuis ' + g.i : 'Séance en cours')
-    : (g.i && g.o && duration(g.i, g.o) ? g.i + '–' + g.o + ' · ' + duration(g.i, g.o) : 'Séance validée');
-  const label = k !== T ? (state === 'out' ? 'Valider' : 'Annuler') : state === 'run' ? 'Reprendre' : state === 'out' ? 'Commencer' : 'Ouvrir';
+    : (g && g.i && g.o && duration(g.i, g.o) ? g.i + '–' + g.o + ' · ' + duration(g.i, g.o) : 'Séance validée');
+  const label = k !== T ? (state === 'out' ? 'Valider' : 'Décocher') : state === 'run' ? 'Reprendre' : state === 'out' ? 'Commencer' : 'Ouvrir';
   return (
     <Card style={[{ flex: 1, overflow: 'hidden' }, style]}>
       <LinearGradient colors={['rgba(108,95,212,0)', on ? 'rgba(108,95,212,0.20)' : 'rgba(108,95,212,0.07)']}
@@ -131,7 +132,7 @@ export function GymCard({ S, update, T, k, style, onOpen }) {
         onPress={press}
         disabled={fut}
         accessibilityRole="button"
-        accessibilityLabel={k === T ? 'Ouvrir la salle' : state === 'out' ? 'Valider la salle' : 'Annuler la séance'}
+        accessibilityLabel={k === T ? 'Ouvrir la salle' : state === 'out' ? 'Valider la salle' : 'Décocher la salle'}
         style={{
           width: 64, height: 64, borderRadius: 32, alignSelf: 'center', marginTop: 12,
           alignItems: 'center', justifyContent: 'center', borderWidth: 2,
@@ -140,7 +141,7 @@ export function GymCard({ S, update, T, k, style, onOpen }) {
         }}
       >
         {state === 'done' ? <CheckIcon size={30} color={C.onPri} width={2.6} />
-          : state === 'run' || state === 'in' ? <Text style={{ color: C.pri, fontWeight: '700', fontSize: 12 }}>EN COURS</Text>
+          : state === 'run' ? <Text style={{ color: C.pri, fontWeight: '700', fontSize: 12 }}>EN COURS</Text>
           : <DumbbellIcon size={26} color={C.acc} />}
       </Pressable>
       <Text style={{ color: C.mu, fontSize: 12, textAlign: 'center', marginTop: 8 }} numberOfLines={1}>{info}</Text>
@@ -152,6 +153,12 @@ export function GymCard({ S, update, T, k, style, onOpen }) {
         style={{ alignSelf: 'center', marginTop: 8, paddingVertical: 6 }}
         textStyle={{ fontSize: 12 }}
       />
+      {k === T && state !== 'out' ? (
+        <Pressable onPress={undo} accessibilityRole="button" accessibilityLabel={state === 'run' ? 'Annuler la séance' : 'Décocher la salle'}
+          hitSlop={8} style={{ alignSelf: 'center', marginTop: 6 }}>
+          <Text style={{ color: C.mu, fontSize: 12, textDecorationLine: 'underline' }}>{state === 'run' ? 'Annuler la séance' : 'Décocher'}</Text>
+        </Pressable>
+      ) : null}
     </Card>
   );
 }

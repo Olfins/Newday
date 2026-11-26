@@ -4,7 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 import { C } from '../theme';
 import { addDays, cap, fmt, LETTERS, mondayOf, toDate, weekNumber, weekOf } from '../dates';
 import { has, nh, pc, weekCount } from '../stats';
-import { addHabit, cycleFreq, removeHabit, toggleHabit } from '../store';
+import { addHabit, cycleFreq, gymDone, removeHabit, toggleHabit } from '../store';
 import { AddRow, Bar, Btn, Card, Dot, H, Icon, Mu, Row } from '../components/ui';
 import { CheckIcon, DumbbellIcon, Face } from '../components/icons';
 import DayPanel from '../components/DayPanel';
@@ -22,7 +22,7 @@ export default function Week(p) {
   const pct = tot ? Math.round((done / tot) * 100) : 0;
   const moods = days.map((k) => S.m[k]).filter(Boolean);
   const avg = moods.length ? (moods.reduce((a, b) => a + b, 0) / moods.length).toFixed(1).replace('.', ',') : '—';
-  const gym = days.filter((k) => S.gym[k] || has(S, k, 'gym')).length;
+  const gym = days.filter((k) => gymDone(S, k)).length;
   const tasks = S.t.filter((t) => t.x && days.includes(t.d)).length;
   const go = (n) => {
     const o = off + n;
@@ -120,7 +120,7 @@ export default function Week(p) {
                 </View>
               </View>
               <View style={{ width: 22, alignItems: 'center' }}>
-                {S.gym[k] || has(S, k, 'gym') ? <DumbbellIcon size={16} /> : null}
+                {gymDone(S, k) ? <DumbbellIcon size={16} /> : null}
               </View>
               <View style={{ width: 22, alignItems: 'center' }}>
                 {S.m[k] ? <Face level={S.m[k]} size={20} on /> : <Text style={{ color: C.line }}>–</Text>}
