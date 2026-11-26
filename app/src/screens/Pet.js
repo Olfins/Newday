@@ -57,21 +57,14 @@ function Home({ S, update, T, wide }) {
   const into = (pet.xp || 0) - st * STEP;
   const daysLeft = Math.ceil((STEP - into) / 40);
   const todayHabits = nh(S, T) % 4;
-  const [bubble, setBubble] = useState('');
+  const [bubble, setBubble] = useState(null);
   const [reset, setReset] = useState(false);
-  const pop = useRef(new Animated.Value(0)).current;
 
   const give = (type) => {
     const before = stageOf(pet.xp || 0);
     const after = stageOf((pet.xp || 0) + XP[type]);
     update((s) => feed(s, T, type));
-    setBubble(after > before ? 'Il grandit ! ' + STAGES[after] : (type === 'p' ? 'Miam, la pâtée ! ' : 'Crunch ! ') + '+' + XP[type] + ' XP');
-    pop.setValue(0);
-    Animated.sequence([
-      Animated.timing(pop, { toValue: 1, duration: 180, useNativeDriver: false }),
-      Animated.delay(1300),
-      Animated.timing(pop, { toValue: 0, duration: 300, useNativeDriver: false }),
-    ]).start();
+    setBubble({ id: Date.now(), text: after > before ? 'Je grandis ! ' + STAGES[after] : (type === 'p' ? 'Miam, la pâtée ! ' : 'Crunch ! ') + '+' + XP[type] + ' XP' });
   };
 
   const moodText = {
@@ -90,14 +83,7 @@ function Home({ S, update, T, wide }) {
               <Text style={{ color: C.tx, fontSize: 12, fontWeight: '600' }}>{mood === 'happy' ? 'Content' : mood === 'ok' ? 'Tranquille' : 'A faim'}</Text>
             </View>
           </Row>
-          <Animated.View pointerEvents="none" style={{
-            position: 'absolute', top: 44, zIndex: 2, opacity: pop,
-            transform: [{ translateY: pop.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
-            backgroundColor: C.pri, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999,
-          }}>
-            <Text style={{ color: C.onPri, fontWeight: '700', fontSize: 13 }}>{bubble}</Text>
-          </Animated.View>
-          <Cat kind={pet.kind} stage={st} mood={mood} size={230} />
+          <Cat kind={pet.kind} stage={st} mood={mood} size={230} name={pet.name} message={bubble} />
           <Text style={{ color: C.tx, fontSize: 28, fontWeight: '700', letterSpacing: -0.5 }}>{pet.name}</Text>
           <Mu style={{ textAlign: 'center', marginTop: 2 }}>{moodText}</Mu>
           <View style={{ alignSelf: 'stretch', marginTop: 14 }}>

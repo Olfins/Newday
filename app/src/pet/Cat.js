@@ -1,7 +1,7 @@
 // Les chats dessinés en traits simples (pas d'images) : costume, cravate ou nœud,
 // quatre tailles (chaton, jeune, adulte, PDG) et trois humeurs.
-import React, { useEffect, useRef } from 'react';
-import { Animated, Easing } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, PanResponder, Text, Vibration, View } from 'react-native';
 import Svg, { Circle, Ellipse, G, Line, Path, Polygon, Rect } from 'react-native-svg';
 
 const LOOKS = {
@@ -18,7 +18,7 @@ const LOOKS = {
 const pts = (a) => a.map((p) => p.join(',')).join(' ');
 const toward = (p, c, f) => [p[0] + (c[0] - p[0]) * f, p[1] + (c[1] - p[1]) * f];
 
-export function CatDrawing({ kind = 'noir', stage = 0, mood = 'happy', size = 200 }) {
+export function CatDrawing({ kind = 'noir', stage = 0, mood = 'happy', size = 200, tail = 0, blink = false }) {
   const P = LOOKS[kind] || LOOKS.noir;
   const hr = [48, 45, 42, 42][stage];
   const bw = [56, 68, 78, 84][stage];
@@ -43,6 +43,7 @@ export function CatDrawing({ kind = 'noir', stage = 0, mood = 'happy', size = 20
       return <Path key={s} d={`M${ex - er} ${ey + 2} Q${ex} ${ey - er * 1.2} ${ex + er} ${ey + 2}`} stroke={kind === 'noir' ? P.eye : P.pupil} strokeWidth="3.2" strokeLinecap="round" fill="none" />;
     }
     const r = mood === 'hungry' ? er * 0.85 : er;
+    if (blink) return <Path key={s} d={`M${ex - r} ${ey + 1} Q${ex} ${ey + r * 0.6} ${ex + r} ${ey + 1}`} stroke={kind === 'noir' ? P.eye : P.pupil} strokeWidth="3" strokeLinecap="round" fill="none" />;
     return (
       <G key={s}>
         <Circle cx={ex} cy={ey} r={r} fill={kind === 'noir' ? P.eye : '#FFFFFF'} />
@@ -69,8 +70,10 @@ export function CatDrawing({ kind = 'noir', stage = 0, mood = 'happy', size = 20
     <Svg width={size} height={size * 1.1} viewBox="0 0 200 220">
       <Ellipse cx={cx} cy={base + 5} rx={bw * 0.75} ry="5" fill="rgba(23,23,29,0.08)" />
       {/* Queue */}
-      <Path d={`M${cx + bw / 2 - 6} ${base - 10} C${cx + bw / 2 + 30} ${base - 4} ${cx + bw / 2 + 36} ${base - 50} ${cx + bw / 2 + 18} ${base - 60}`}
-        stroke={P.fur} strokeWidth="10" strokeLinecap="round" fill="none" />
+      <G transform={`rotate(${tail.toFixed(1)} ${cx + bw / 2 - 6} ${base - 10})`}>
+        <Path d={`M${cx + bw / 2 - 6} ${base - 10} C${cx + bw / 2 + 30} ${base - 4} ${cx + bw / 2 + 36} ${base - 50} ${cx + bw / 2 + 18} ${base - 60}`}
+          stroke={P.fur} strokeWidth="10" strokeLinecap="round" fill="none" />
+      </G>
       {/* Mallette du PDG */}
       {stage === 3 ? (
         <G>
@@ -138,21 +141,163 @@ export function CatDrawing({ kind = 'noir', stage = 0, mood = 'happy', size = 20
   );
 }
 
-// Le chat qui respire doucement (petite animation).
-export default function Cat(props) {
-  const y = useRef(new Animated.Value(0)).current;
+// Phrases au hasard. {n} = prénom.
+const SAY = {
+  any: ['Miaou !', 'Miaou ?', 'Mrrr…', 'Prrrr…', 'On a une réunion à 10 h ?', 'Je relis mes mails.', 'Tu as coché tes habitudes ?', 'Une petite sieste et je reviens.', 'C’est l’heure de la pâtée ?', 'J’aime bien ton agenda.', 'Tu gères !', 'Pause café ?'],
+  happy: ['Merci pour la pâtée !', 'Je me sens en forme !', 'Prrrr… trop bien.', 'Meilleur patron du monde.'],
+  hungry: ['J’ai un peu faim…', 'Miaou… la pâtée ?', 'Coche 4 habitudes, s’il te plaît !'],
+  boss: ['Je suis le PDG ici.', 'Réunion du conseil à 14 h.', 'Signons ce contrat.'],
+  pet: ['Prrrr…', 'Prrrrrr…', 'Encore !', 'Ronron…', 'Juste là, oui…'],
+  tap: ['Miaou !', 'Hé !', 'Oui ?', 'Miaou ?', 'Coucou !'],
+};
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+
+const Heart = ({ size = 18, color = '#E8738A' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24">
+    <Path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.5 3 5 6.4 5c2 0 3.3 1.1 4 2.3h3.2C14.3 6.1 15.6 5 17.6 5 21 5 23.1 8.5 21.6 11.8 19.5 16.4 12 21 12 21z" fill={color} />
+  </Svg>
+);
+
+function FloatingHeart({ x, y, onDone }) {
+  const v = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    const a = Animated.loop(Animated.sequence([
-      Animated.timing(y, { toValue: -4, duration: 1100, easing: Easing.inOut(Easing.quad), useNativeDriver: false }),
-      Animated.timing(y, { toValue: 0, duration: 1100, easing: Easing.inOut(Easing.quad), useNativeDriver: false }),
-    ]));
-    a.start();
-    return () => a.stop();
+    Animated.timing(v, { toValue: 1, duration: 1100, easing: Easing.out(Easing.quad), useNativeDriver: false }).start(onDone);
   }, []);
   return (
-    <Animated.View style={{ transform: [{ translateY: y }] }}>
-      <CatDrawing {...props} />
+    <Animated.View pointerEvents="none" style={{
+      position: 'absolute', left: x, top: y,
+      opacity: v.interpolate({ inputRange: [0, 0.7, 1], outputRange: [1, 1, 0] }),
+      transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [0, -80] }) }, { scale: v.interpolate({ inputRange: [0, 0.2, 1], outputRange: [0.4, 1.1, 0.9] }) }],
+    }}>
+      <Heart />
     </Animated.View>
+  );
+}
+
+// Le chat vivant : il respire, cligne des yeux, bouge la queue, parle,
+// et réagit quand on le touche ou qu'on le caresse (glisser le doigt dessus).
+export default function Cat({ kind, stage, mood, size = 200, name, message }) {
+  const breathe = useRef(new Animated.Value(0)).current;
+  const hop = useRef(new Animated.Value(0)).current;
+  const bubbleV = useRef(new Animated.Value(0)).current;
+  const [tail, setTail] = useState(0);
+  const [blink, setBlink] = useState(false);
+  const [bubble, setBubble] = useState('');
+  const [hearts, setHearts] = useState([]);
+  const [purring, setPurring] = useState(false);
+  const live = useRef({});
+  live.current = { mood, stage, size };
+  const hideT = useRef(null), purrT = useRef(null);
+
+  const say = (txt, ms = 2200) => {
+    setBubble(txt);
+    bubbleV.setValue(0);
+    Animated.spring(bubbleV, { toValue: 1, friction: 6, useNativeDriver: false }).start();
+    clearTimeout(hideT.current);
+    hideT.current = setTimeout(() => Animated.timing(bubbleV, { toValue: 0, duration: 250, useNativeDriver: false }).start(), ms);
+  };
+  const randomLine = () => {
+    const { mood: m, stage: st } = live.current;
+    const pool = [...SAY.any, ...(m === 'hungry' ? SAY.hungry.concat(SAY.hungry) : m === 'happy' ? SAY.happy : []), ...(st === 3 ? SAY.boss : [])];
+    return pick(pool);
+  };
+
+  useEffect(() => {
+    // Respiration
+    const a = Animated.loop(Animated.sequence([
+      Animated.timing(breathe, { toValue: 1, duration: 1300, easing: Easing.inOut(Easing.quad), useNativeDriver: false }),
+      Animated.timing(breathe, { toValue: 0, duration: 1300, easing: Easing.inOut(Easing.quad), useNativeDriver: false }),
+    ]));
+    a.start();
+    // Queue qui balance doucement
+    let t0 = Date.now();
+    const tailI = setInterval(() => setTail(Math.sin((Date.now() - t0) / 450) * 9), 60);
+    // Clignement des yeux de temps en temps
+    let blinkT;
+    const loopBlink = () => {
+      blinkT = setTimeout(() => { setBlink(true); setTimeout(() => setBlink(false), 140); loopBlink(); }, 2500 + Math.random() * 3000);
+    };
+    loopBlink();
+    // Une phrase au hasard toutes les 7 à 12 secondes
+    let talkT;
+    const loopTalk = () => { talkT = setTimeout(() => { say(randomLine()); loopTalk(); }, 7000 + Math.random() * 5000); };
+    const first = setTimeout(() => say(randomLine()), 1200);
+    loopTalk();
+    return () => { a.stop(); clearInterval(tailI); clearTimeout(blinkT); clearTimeout(talkT); clearTimeout(first); clearTimeout(hideT.current); clearTimeout(purrT.current); };
+  }, []);
+
+  // Message envoyé par l'écran (par exemple quand on le nourrit).
+  useEffect(() => {
+    if (message && message.text) { say(message.text, 2200); jump(); for (let i = 0; i < 3; i++) setTimeout(heart, i * 150); }
+  }, [message && message.id]);
+
+  const jump = () => {
+    hop.setValue(0);
+    Animated.sequence([
+      Animated.timing(hop, { toValue: 1, duration: 140, easing: Easing.out(Easing.quad), useNativeDriver: false }),
+      Animated.timing(hop, { toValue: 0, duration: 260, easing: Easing.bounce, useNativeDriver: false }),
+    ]).start();
+  };
+  const heart = () => {
+    const id = Date.now() + Math.random();
+    const x = live.current.size * (0.3 + Math.random() * 0.4);
+    setHearts((h) => [...h.slice(-8), { id, x }]);
+  };
+  const purr = () => {
+    setPurring(true);
+    clearTimeout(purrT.current);
+    purrT.current = setTimeout(() => setPurring(false), 1600);
+  };
+
+  // Geste : un toucher = il répond ; un glissement = une caresse.
+  const acc = useRef(0);
+  const pan = useRef(PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderTerminationRequest: () => false,
+    onPanResponderGrant: () => { acc.current = 0; },
+    onPanResponderMove: (e, g) => {
+      const d = Math.abs(g.vx) + Math.abs(g.vy);
+      acc.current += d * 16;
+      if (acc.current > 60) {
+        acc.current = 0;
+        heart();
+        purr();
+        if (Math.random() < 0.25) say(pick(SAY.pet), 1500);
+        try { Vibration.vibrate(10); } catch (err) {}
+      }
+    },
+    onPanResponderRelease: (e, g) => {
+      if (Math.abs(g.dx) < 6 && Math.abs(g.dy) < 6) { jump(); say(pick(SAY.tap), 1500); heart(); }
+    },
+  })).current;
+
+  const shownMood = purring ? 'happy' : mood;
+  return (
+    <View style={{ width: size, alignItems: 'center' }}>
+      <Animated.View pointerEvents="none" style={{
+        position: 'absolute', top: -6, zIndex: 3, maxWidth: size * 1.1,
+        opacity: bubbleV, transform: [{ scale: bubbleV.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }],
+      }}>
+        <View style={{ backgroundColor: '#FFFFFF', paddingVertical: 7, paddingHorizontal: 12, borderRadius: 16, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } }}>
+          <Text style={{ color: '#15151B', fontSize: 14, fontWeight: '600', textAlign: 'center' }}>{bubble}</Text>
+        </View>
+        <View style={{ alignSelf: 'center', width: 12, height: 12, backgroundColor: '#FFFFFF', transform: [{ rotate: '45deg' }], marginTop: -6 }} />
+      </Animated.View>
+      <View {...pan.panHandlers} accessibilityRole="button" accessibilityLabel={'Caresser ' + (name || 'le chat')}
+        style={{ paddingTop: 40, cursor: 'grab', userSelect: 'none' }}>
+        <Animated.View style={{
+          transform: [
+            { translateY: Animated.add(breathe.interpolate({ inputRange: [0, 1], outputRange: [0, -3] }), hop.interpolate({ inputRange: [0, 1], outputRange: [0, -22] })) },
+            { scaleY: breathe.interpolate({ inputRange: [0, 1], outputRange: [1, 1.015] }) },
+          ],
+        }}>
+          <CatDrawing kind={kind} stage={stage} mood={shownMood} size={size} tail={purring ? tail * 2 : tail} blink={blink && !purring} />
+        </Animated.View>
+        {hearts.map((h) => <FloatingHeart key={h.id} x={h.x} y={40 + size * 0.42} onDone={() => setHearts((a) => a.filter((z) => z.id !== h.id))} />)}
+      </View>
+      <Text style={{ color: '#8A8998', fontSize: 12, marginTop: 2, opacity: purring ? 1 : 0.8 }}>{purring ? 'Ronron…' : 'Touche-le ou caresse-le avec le doigt'}</Text>
+    </View>
   );
 }
 
