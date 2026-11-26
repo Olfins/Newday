@@ -11,15 +11,17 @@ import Today from './src/screens/Today';
 import Week from './src/screens/Week';
 import Calendar from './src/screens/Calendar';
 import Progress from './src/screens/Progress';
+import Pet from './src/screens/Pet';
 import QuickAdd from './src/components/QuickAdd';
 import GymModule from './src/gym/GymModule';
-import { CalIcon, ChartIcon, HomeIcon, PlusIcon, WeekIcon } from './src/components/icons';
+import { CalIcon, ChartIcon, HomeIcon, PawIcon, PlusIcon, WeekIcon } from './src/components/icons';
 
 const TABS = [
   { id: 'day', label: 'Aujourd’hui', screen: Today, Icon: HomeIcon },
   { id: 'week', label: 'Semaine', screen: Week, Icon: WeekIcon },
   { id: 'cal', label: 'Calendrier', screen: Calendar, Icon: CalIcon },
   { id: 'prog', label: 'Progrès', screen: Progress, Icon: ChartIcon },
+  { id: 'pet', label: 'Pet', screen: Pet, Icon: PawIcon },
 ];
 
 export default function App() {
@@ -99,7 +101,7 @@ function Main() {
                   accessibilityLabel={t.label}
                   accessibilityState={{ selected: on }}
                   style={{
-                    width: 52, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center',
+                    width: 50, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center',
                     backgroundColor: on ? 'rgba(255,255,255,0.14)' : 'transparent',
                   }}
                 >
@@ -110,7 +112,7 @@ function Main() {
             })}
           </View>
           <Pressable
-            onPress={() => setAdd(tab === 'week' || tab === 'prog' ? 'habit' : 'todo')}
+            onPress={() => setAdd(tab === 'week' || tab === 'prog' || tab === 'pet' ? 'habit' : 'todo')}
             accessibilityRole="button"
             accessibilityLabel="Ajouter"
             style={({ pressed }) => ({

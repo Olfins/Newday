@@ -27,6 +27,12 @@ export const ChartIcon = ({ size = 22, color = C.tx }) => (
     <Line x1="5" y1="20" x2="5" y2="12" /><Line x1="12" y1="20" x2="12" y2="5" /><Line x1="19" y1="20" x2="19" y2="9" />
   </Svg>
 );
+export const PawIcon = ({ size = 22, color = C.tx }) => (
+  <Svg {...base(size, color)}>
+    <Path d="M12 13.5c-3 0-5.5 2.6-5.5 4.6 0 1.6 1.3 2.4 2.8 2.4 1.1 0 1.8-.6 2.7-.6s1.6.6 2.7.6c1.5 0 2.8-.8 2.8-2.4 0-2-2.5-4.6-5.5-4.6z" />
+    <Circle cx="5.5" cy="10" r="1.8" /><Circle cx="9.5" cy="5.5" r="1.8" /><Circle cx="14.5" cy="5.5" r="1.8" /><Circle cx="18.5" cy="10" r="1.8" />
+  </Svg>
+);
 export const PlusIcon = ({ size = 22, color = C.tx }) => (
   <Svg {...base(size, color)}><Line x1="12" y1="5" x2="12" y2="19" /><Line x1="5" y1="12" x2="19" y2="12" /></Svg>
 );

@@ -37,6 +37,7 @@ npx expo start --web
 - `src/components/today.js` : les cartes de l'écran Aujourd'hui (habitudes, salle, humeur, tâches, programme).
 - `src/components/QuickAdd.js` : la fenêtre du bouton +.
 - `src/components/pickers.js` : la roue des heures et le calendrier façon iPhone.
+- `src/pet/` : le compagnon (dessin des chats dans `Cat.js`, règles de nourriture et d'XP dans `rules.js`).
 - `src/gym/` : le module Salle (programmes dans `programs.js`, séance en cours dans `GymModule.js`, silhouette des muscles dans `Figure.js`).
 
 ## Reprendre tes données de l'ancienne version
