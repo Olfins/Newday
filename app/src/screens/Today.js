@@ -8,6 +8,9 @@ import { has, visibleTodos } from '../stats';
 import { toggleOff } from '../store';
 import { parseICS, mergeICS } from '../ics';
 import { Btn, Card, Mu, Row } from '../components/ui';
+import Cat from '../pet/Cat';
+import { lookOf } from '../pet/looks';
+import { stageOf } from '../pet/rules';
 import { DayHabits, GymCard, MoodCard, NowCard, Schedule, TodoCard } from '../components/today';
 
 async function readPicked(asset) {
@@ -50,7 +53,8 @@ export default function Today({ S, update, T, wide, openAdd, openGym }) {
     return (
       <>
         {summary}
-        <Card hero style={{ alignItems: 'center', paddingVertical: 40 }}>
+        <Card hero style={{ alignItems: 'center', paddingVertical: S.pet ? 20 : 40 }}>
+          {S.pet ? <Cat look={lookOf(S.pet)} stage={stageOf(S.pet.xp || 0)} mood="ok" size={170} name={S.pet.name} scene="sleep" /> : null}
           <Text style={{ fontFamily: C.serif, color: C.pri, fontSize: 30, fontWeight: '300', letterSpacing: 6 }}>REPOS</Text>
           <Mu style={{ marginTop: 8, textAlign: 'center' }}>Jour off : il ne compte pas dans tes séries.</Mu>
           <Btn label="Annuler le jour off" onPress={() => update((s) => toggleOff(s, k))} style={{ marginTop: 20 }} />

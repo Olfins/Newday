@@ -33,11 +33,17 @@ export function pantry(S, T) {
 
 export const stageOf = (xp) => Math.min(STAGES.length - 1, Math.floor(xp / STEP));
 
-// Content s'il a mangé aujourd'hui, normal s'il a mangé hier (ou vient d'arriver), sinon il a faim.
-export function moodOf(pet, T) {
+// Content s'il a mangé aujourd'hui, normal s'il a mangé la veille (ou vient d'arriver), sinon il a faim.
+// Les jours off ne comptent pas : ce jour-là il dort, et il n'a pas faim à cause d'eux.
+export function moodOf(pet, T, S) {
   if (pet.last === T) return 'happy';
-  if (pet.last === addDays(T, -1) || pet.since === T || (!pet.last && pet.since === addDays(T, -1))) return 'ok';
-  return 'hungry';
+  const off = (S && S.off) || {};
+  if (off[T]) return 'ok';
+  const base = pet.last || pet.since;
+  let gap = 0;
+  for (let d = T, n = 0; d > base && n < 400; d = addDays(d, -1), n++) if (!off[d]) gap++;
+  if (!pet.last) gap -= 1;
+  return gap <= 1 ? 'ok' : 'hungry';
 }
 
 export function feed(s, T, type) {

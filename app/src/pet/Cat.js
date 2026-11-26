@@ -3,7 +3,7 @@
 // Quatre tailles (chaton, jeune, adulte, PDG) et trois humeurs.
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, PanResponder, Text, Vibration, View } from 'react-native';
-import Svg, { Circle, Ellipse, G, Line, Path, Rect } from 'react-native-svg';
+import Svg, { Circle, Ellipse, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
 import { lookOf, palette } from './looks';
 
 const pts = (a) => a.map((p) => p.map((v) => +v.toFixed(2)).join(',')).join(' ');
@@ -24,7 +24,8 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
   const holds = scene === 'coffee' || scene === 'water' || scene === 'snack';
   const sipRaw = (Math.sin(t * 1.5) + 1) / 2;
   const sip = holds ? Math.min(1, Math.max(0, (sipRaw - 0.25) / 0.6)) : 0;
-  const mood = scene === 'work' ? 'ok' : holds && sip > 0.85 ? 'happy' : scene ? 'happy' : mood0;
+  const sleeping = scene === 'sleep';
+  const mood = sleeping ? 'sleep' : scene === 'work' ? 'ok' : holds && sip > 0.85 ? 'happy' : scene ? 'happy' : mood0;
   const hr = [48, 45, 42, 42][stage];
   const bw = [56, 68, 78, 84][stage];
   const bh = [48, 62, 76, 84][stage];
@@ -49,6 +50,10 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
 
   const eye = (s) => {
     const ex = cx + s * hr * 0.4, ey = hy - hr * 0.04;
+    // Endormi : paupières fermées, courbées vers le bas.
+    if (mood === 'sleep') {
+      return <G><Path d={`M${ex - er} ${ey} Q${ex} ${ey + er * 0.9} ${ex + er} ${ey}`} stroke={lidC} strokeWidth="3" strokeLinecap="round" fill="none" />{lashes(s, ex, ey + 1, er)}</G>;
+    }
     if (mood === 'happy') {
       return <G><Path d={`M${ex - er} ${ey + 2} Q${ex} ${ey - er * 1.2} ${ex + er} ${ey + 2}`} stroke={lidC} strokeWidth="3.2" strokeLinecap="round" fill="none" />{lashes(s, ex, ey + 2, er)}</G>;
     }
@@ -209,6 +214,7 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
           <Line key={s + '' + d} x1={cx + s * hr * 0.42} y1={hy + hr * 0.3 + d * 0.4} x2={cx + s * hr * 1.08} y2={hy + hr * 0.26 + d * 1.6} />
         )))}
       </G>
+      {sleeping ? <Zzz x={cx + hr * 0.75} y={hy - hr * 0.55} t={t} /> : null}
       {glasses ? (
         <G stroke="#17171D" strokeWidth="2.5" fill="none">
           <Circle cx={cx - hr * 0.4} cy={hy - hr * 0.04} r={hr * 0.24} />
@@ -229,6 +235,20 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
       {scene === 'work' ? <Desk P={P} cx={cx} bw={bw} top={top} t={t} /> : null}
       {holds ? <Hold P={P} scene={scene} cx={cx} bw={bw} top={top} bh={bh} hr={hr} my={my} sip={sip} t={t} /> : null}
     </Svg>
+  );
+}
+
+// Les « z » qui montent quand il dort.
+function Zzz({ x, y, t }) {
+  return (
+    <G>
+      {[0, 1, 2].map((i) => {
+        const o = (t * 0.32 + i / 3) % 1;
+        return (
+          <SvgText key={i} x={x + o * 22} y={y - o * 46} fontSize={11 + o * 11} fontWeight="700" fill="#5E6B8C" opacity={o < 0.15 ? o / 0.15 : 1 - (o - 0.15) / 0.85}>z</SvgText>
+        );
+      })}
+    </G>
   );
 }
 
@@ -346,8 +366,11 @@ const SAY = {
   walk: ['Je me dégourdis les pattes.', 'Un peu d’air frais !', 'Ça fait du bien de bouger.'],
   snack: ['Crunch crunch…', 'Un petit en-cas.', 'Miam, un biscuit.'],
   water: ['Glou glou…', 'Il faut boire de l’eau !', 'Bien hydraté, bien concentré.'],
+  sleep: ['Zzz…', 'Mrrr… zzz…', 'Rrrr… pchhh…', 'Jour off… zzz…'],
+  sleepTap: ['Mmh… ?', 'Mrrr…', '…encore cinq minutes…', 'Zzz… ronron…'],
 };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const cap1 = (x) => x.charAt(0).toUpperCase() + x.slice(1);
 
 const Heart = ({ size = 18, color = '#E8738A' }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24">
@@ -468,22 +491,30 @@ export default function Cat({ look, kind, stage, mood, size = 200, name, message
         acc.current = 0;
         heart();
         purr();
-        if (Math.random() < 0.25) say(pick(SAY.pet), 1500);
+        if (Math.random() < 0.25) say(pick(live.current.scene === 'sleep' ? SAY.sleepTap : SAY.pet), 1500);
         try { Vibration.vibrate(10); } catch (err) {}
       }
     },
     onPanResponderRelease: (e, g) => {
-      if (Math.abs(g.dx) < 6 && Math.abs(g.dy) < 6) { jump(); say(pick(SAY.tap), 1500); heart(); }
+      if (Math.abs(g.dx) < 6 && Math.abs(g.dy) < 6) {
+        // Endormi : il remue à peine sans se réveiller.
+        if (live.current.scene === 'sleep') { say(pick(SAY.sleepTap), 1500); heart(); return; }
+        jump(); say(pick(SAY.tap), 1500); heart();
+      }
     },
   })).current;
 
-  const tail = Math.sin(time / 0.45) * 9;
-  const shownMood = purring ? 'happy' : mood;
+  const sleeping = scene === 'sleep';
+  // Endormi : queue presque immobile et respiration lente et profonde.
+  const tail = sleeping ? 16 + Math.sin(time * 0.8) * 2 : Math.sin(time / 0.45) * 9;
+  const sleepBreath = sleeping ? Math.sin(time * 1.3) : 0;
+  const shownMood = purring && !sleeping ? 'happy' : mood;
   // En promenade : il va et vient, et se retourne dans le sens de la marche.
   const walkX = scene === 'walk' ? Math.sin(time * 0.6) * size * 0.3 : 0;
   const face = scene === 'walk' && Math.cos(time * 0.6) > 0 ? -1 : 1;
   const bob = scene === 'walk' ? -Math.abs(Math.sin(time * 7)) * 3 : 0;
-  const hint = purring ? 'Ronron…' : scene === 'work' ? 'On bosse ensemble' : scene ? 'C’est la pause' : 'Touche-le ou caresse-le avec le doigt';
+  const il = look && look.sex === 'f' ? 'elle' : 'il';
+  const hint = sleeping ? (purring ? cap1(il) + ' ronronne en dormant…' : 'Chut, ' + il + ' fait la sieste') : purring ? 'Ronron…' : scene === 'work' ? 'On bosse ensemble' : scene ? 'C’est la pause' : 'Touche-le ou caresse-le avec le doigt';
   return (
     <View style={{ width: size, alignItems: 'center' }}>
       <Animated.View pointerEvents="none" style={{
@@ -497,14 +528,14 @@ export default function Cat({ look, kind, stage, mood, size = 200, name, message
       </Animated.View>
       <View {...pan.panHandlers} accessibilityRole="button" accessibilityLabel={'Caresser ' + (name || 'le chat')}
         style={{ paddingTop: 40, cursor: 'grab', userSelect: 'none' }}>
-        <View style={{ transform: [{ translateX: walkX }, { translateY: bob }, { scaleX: face }] }}>
+        <View style={{ transform: [{ translateX: walkX }, { translateY: bob + sleepBreath * 1.5 }, { scaleX: face }, { scaleY: 1 + sleepBreath * 0.012 }] }}>
         <Animated.View style={{
           transform: [
             { translateY: Animated.add(breathe.interpolate({ inputRange: [0, 1], outputRange: [0, -3] }), hop.interpolate({ inputRange: [0, 1], outputRange: [0, -22] })) },
             { scaleY: breathe.interpolate({ inputRange: [0, 1], outputRange: [1, 1.015] }) },
           ],
         }}>
-          <CatDrawing look={look} kind={kind} stage={stage} mood={shownMood} size={size} tail={purring || scene === 'walk' ? tail * 2 : tail} blink={blink && !purring} scene={scene} t={time} />
+          <CatDrawing look={look} kind={kind} stage={stage} mood={shownMood} size={size} tail={(purring || scene === 'walk') && !sleeping ? tail * 2 : tail} blink={blink && !purring && !sleeping} scene={scene} t={time} />
         </Animated.View>
         </View>
         {hearts.map((h) => <FloatingHeart key={h.id} x={h.x} y={40 + size * 0.42} onDone={() => setHearts((a) => a.filter((z) => z.id !== h.id))} />)}

@@ -33,7 +33,8 @@ function Adopt({ update, T, wide }) {
 function Home({ S, update, T, wide }) {
   const pet = S.pet;
   const st = stageOf(pet.xp || 0);
-  const mood = moodOf(pet, T);
+  const mood = moodOf(pet, T, S);
+  const offToday = !!S.off[T];
   const food = pantry(S, T);
   const look = lookOf(pet);
   const k = SEXES[look.sex] || SEXES.m;
@@ -48,7 +49,7 @@ function Home({ S, update, T, wide }) {
     setBubble({ id: Date.now(), text: next === 'break' ? 'Bien joué ! On fait une pause.' : 'Pause finie. On s’y remet ?' });
   });
   const pomo = timer.p;
-  const scene = pomo.ph === 'work' ? 'work' : pomo.ph === 'break' ? pomo.scene : null;
+  const scene = pomo.ph === 'work' ? 'work' : pomo.ph === 'break' ? pomo.scene : offToday ? 'sleep' : null;
 
   const give = (type) => {
     const before = stageOf(pet.xp || 0);
@@ -62,7 +63,7 @@ function Home({ S, update, T, wide }) {
     ok: pet.name + ' va bien. Donne-lui à manger aujourd’hui.',
     hungry: pet.name + ' a faim… Coche tes habitudes pour gagner de la pâtée.',
   }[mood];
-  const shownText = scene === 'work' ? pet.name + ' travaille avec toi.' : scene ? pet.name + ' ' + BREAK_TEXT[scene] + '.' : moodText;
+  const shownText = scene === 'sleep' ? pet.name + ' fait la sieste : c’est ton jour off.' : scene === 'work' ? pet.name + ' travaille avec toi.' : scene ? pet.name + ' ' + BREAK_TEXT[scene] + '.' : moodText;
 
   if (edit) {
     return (
@@ -80,7 +81,7 @@ function Home({ S, update, T, wide }) {
             <Text style={{ color: C.acc, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>{STAGES[st].toUpperCase()}</Text>
             <View style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.6)' }}>
               <Text style={{ color: C.tx, fontSize: 12, fontWeight: '600', fontVariant: ['tabular-nums'] }}>
-                {scene ? (scene === 'work' ? 'Au travail' : 'Pause') + ' · ' + clock(remaining(pomo, timer.now)) : mood === 'happy' ? 'Content' : mood === 'ok' ? 'Tranquille' : 'A faim'}
+                {scene === 'sleep' ? 'Jour off · dort' : scene ? (scene === 'work' ? 'Au travail' : 'Pause') + ' · ' + clock(remaining(pomo, timer.now)) : mood === 'happy' ? 'Content' : mood === 'ok' ? 'Tranquille' : 'A faim'}
               </Text>
             </View>
           </Row>
