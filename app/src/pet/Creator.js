@@ -67,7 +67,7 @@ export default function Creator({ initial, initialName, onDone, onCancel, editin
 
   const previewCard = (
     <View style={{ borderRadius: 28, overflow: 'hidden' }}>
-      <LinearGradient colors={[C.lav1, C.lav2, '#F7F6FD']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 16, alignItems: 'center' }}>
+      <LinearGradient colors={[C.lav1, C.lav2, C.lav3]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 16, alignItems: 'center' }}>
         <Row style={{ alignSelf: 'stretch', justifyContent: 'space-between' }}>
           <Text style={{ color: C.acc, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>{editing ? 'MODIFIER' : 'CRÉE TON CHAT'}</Text>
           <Pressable onPress={() => { setLook(randomLook()); if (!editing) setName(NAMES[Math.floor(Math.random() * NAMES.length)]); }}
@@ -77,7 +77,7 @@ export default function Creator({ initial, initialName, onDone, onCancel, editin
           </Pressable>
         </Row>
         <CatDrawing look={look} stage={stage} mood="ok" size={wide ? 240 : 210} />
-        <Text style={{ color: C.tx, fontSize: 24, fontWeight: '700', letterSpacing: -0.5 }}>{finalName}</Text>
+        <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 24, fontWeight: '700', letterSpacing: -0.2 }}>{finalName}</Text>
       </LinearGradient>
     </View>
   );

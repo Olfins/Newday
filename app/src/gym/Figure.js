@@ -55,7 +55,7 @@ export default function Figure({ view = 'f', muscles = [], size = 60, dark }) {
         <G transform={MIRROR}><Arm /></G>
       </G>
       {(view === 'f' ? FRONT : REAR).map((r) => (
-        <G key={r.id} fill={hi[r.id] ? C.acc : 'rgba(108,95,212,0.10)'} stroke={line} strokeWidth="0.7">
+        <G key={r.id} fill={hi[r.id] ? C.acc : C.accSoft} stroke={line} strokeWidth="0.7">
           <r.D />
           {r.c ? null : <G transform={MIRROR}><r.D /></G>}
         </G>

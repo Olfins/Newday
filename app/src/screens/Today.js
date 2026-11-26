@@ -62,7 +62,7 @@ export default function Today({ S, update, T, cd, setCd, wide, openAdd, openGym 
         {calendar}
         <DayPicker S={S} T={T} cd={cd} setCd={setCd} />
         <Card hero style={{ alignItems: 'center', paddingVertical: 40 }}>
-          <Text style={{ color: C.pri, fontSize: 30, fontWeight: '300', letterSpacing: 6 }}>REPOS</Text>
+          <Text style={{ fontFamily: C.serif, color: C.pri, fontSize: 30, fontWeight: '300', letterSpacing: 6 }}>REPOS</Text>
           <Mu style={{ marginTop: 8, textAlign: 'center' }}>Jour off : il ne compte pas dans tes séries.</Mu>
           <Btn label="Annuler le jour off" onPress={() => update((s) => toggleOff(s, k))} style={{ marginTop: 20 }} />
         </Card>

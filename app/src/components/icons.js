@@ -8,23 +8,35 @@ const base = (size, color) => ({
   stroke: color, strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round',
 });
 
+// Icônes des onglets, esprit fournitures de bureau.
+// Aujourd'hui : la tasse de café du matin.
 export const HomeIcon = ({ size = 22, color = C.tx }) => (
-  <Svg {...base(size, color)}><Path d="M3 11l9-7 9 7v8a2 2 0 0 1-2 2h-4v-6h-6v6H5a2 2 0 0 1-2-2z" /></Svg>
+  <Svg {...base(size, color)}>
+    <Path d="M4 9h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z" /><Path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16" />
+    <Path d="M8 3.5c-.8 1 .8 1.8 0 3M12 3.5c-.8 1 .8 1.8 0 3" />
+  </Svg>
 );
+// Semaine : un carnet à spirale.
 export const WeekIcon = ({ size = 22, color = C.tx }) => (
   <Svg {...base(size, color)}>
-    <Line x1="4" y1="7" x2="20" y2="7" /><Line x1="4" y1="12" x2="20" y2="12" /><Line x1="4" y1="17" x2="14" y2="17" />
+    <Rect x="6" y="3" width="14" height="18" rx="2" />
+    <Line x1="3.5" y1="7" x2="7.5" y2="7" /><Line x1="3.5" y1="12" x2="7.5" y2="12" /><Line x1="3.5" y1="17" x2="7.5" y2="17" />
+    <Line x1="10.5" y1="8" x2="16.5" y2="8" /><Line x1="10.5" y1="12" x2="15" y2="12" />
   </Svg>
 );
+// Calendrier : un calendrier de bureau à anneaux.
 export const CalIcon = ({ size = 22, color = C.tx }) => (
   <Svg {...base(size, color)}>
-    <Rect x="3" y="5" width="18" height="16" rx="3" /><Line x1="3" y1="10" x2="21" y2="10" />
+    <Rect x="3" y="5" width="18" height="16" rx="2.5" /><Line x1="3" y1="10" x2="21" y2="10" />
     <Line x1="8" y1="3" x2="8" y2="7" /><Line x1="16" y1="3" x2="16" y2="7" />
+    <Rect x="7" y="13.5" width="3.5" height="3.5" rx="0.8" />
   </Svg>
 );
+// Progrès : un porte-bloc avec un petit graphique.
 export const ChartIcon = ({ size = 22, color = C.tx }) => (
   <Svg {...base(size, color)}>
-    <Line x1="5" y1="20" x2="5" y2="12" /><Line x1="12" y1="20" x2="12" y2="5" /><Line x1="19" y1="20" x2="19" y2="9" />
+    <Rect x="4.5" y="4.5" width="15" height="17" rx="2" /><Rect x="9" y="2.5" width="6" height="4" rx="1" />
+    <Line x1="9" y1="18" x2="9" y2="14" /><Line x1="12" y1="18" x2="12" y2="10.5" /><Line x1="15" y1="18" x2="15" y2="12.5" />
   </Svg>
 );
 export const PawIcon = ({ size = 22, color = C.tx }) => (
@@ -82,9 +94,9 @@ export function Face({ level, size = 28, on }) {
   };
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path d={HEAD} fill={on ? C.pri : C.card} stroke={on ? C.pri : '#C9C7D6'} strokeWidth="1.3" strokeLinejoin="round" />
+      <Path d={HEAD} fill={on ? C.pri : C.card} stroke={on ? C.pri : '#D3C6AC'} strokeWidth="1.3" strokeLinejoin="round" />
       <Path d="M11.2 14.5h1.6L12 15.3z" fill={on ? '#E9A3B4' : f} stroke={on ? '#E9A3B4' : f} strokeWidth="0.6" strokeLinejoin="round" />
-      <Path d="M1.8 14.1l3.2 0.3M2.1 16.3l3-0.7M22.2 14.1l-3.2 0.3M21.9 16.3l-3-0.7" stroke={on ? C.pri : '#C9C7D6'} strokeWidth="0.9" strokeLinecap="round" />
+      <Path d="M1.8 14.1l3.2 0.3M2.1 16.3l3-0.7M22.2 14.1l-3.2 0.3M21.9 16.3l-3-0.7" stroke={on ? C.pri : '#D3C6AC'} strokeWidth="0.9" strokeLinecap="round" />
       {parts[level]}
     </Svg>
   );

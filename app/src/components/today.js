@@ -125,7 +125,7 @@ export function GymCard({ S, update, T, k, style, onOpen }) {
   const label = k !== T ? (state === 'out' ? 'Valider' : 'Décocher') : state === 'run' ? 'Reprendre' : state === 'out' ? 'Commencer' : 'Ouvrir';
   return (
     <Card style={[{ flex: 1, overflow: 'hidden' }, style]}>
-      <LinearGradient colors={['rgba(108,95,212,0)', on ? 'rgba(108,95,212,0.20)' : 'rgba(108,95,212,0.07)']}
+      <LinearGradient colors={['rgba(168,127,51,0)', on ? 'rgba(168,127,51,0.22)' : 'rgba(168,127,51,0.08)']}
         style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '70%' }} pointerEvents="none" />
       <Row style={{ gap: 6 }}><DumbbellIcon color={C.acc} /><H style={{ marginBottom: 0 }}>Salle</H></Row>
       <Pressable
@@ -169,7 +169,7 @@ export function MoodCard({ S, update, T, k, style }) {
   const fut = k > T;
   return (
     <Card style={[{ flex: 1, overflow: 'hidden' }, style]}>
-      <LinearGradient colors={['rgba(240,138,60,0)', m ? 'rgba(240,138,60,0.22)' : 'rgba(240,138,60,0.08)']}
+      <LinearGradient colors={['rgba(31,77,58,0)', m ? 'rgba(31,77,58,0.16)' : 'rgba(31,77,58,0.06)']}
         style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '70%' }} pointerEvents="none" />
       <Row style={{ gap: 6 }}><MoodIcon color={C.acc} /><H style={{ marginBottom: 0 }}>Humeur</H></Row>
       <View style={{ flex: 1, justifyContent: 'center' }}>
@@ -281,14 +281,14 @@ export function NowCard({ S, T, k, onAdd }) {
 
 function Hero({ label, title, sub, pct, action }) {
   return (
-    <View style={{ borderRadius: 26, overflow: 'hidden', shadowColor: '#4B3FB0', shadowOpacity: 0.15, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } }}>
-      <LinearGradient colors={[C.lav1, C.lav2, '#F7F6FD']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+    <View style={{ borderRadius: 26, overflow: 'hidden', shadowColor: '#6B5320', shadowOpacity: 0.15, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } }}>
+      <LinearGradient colors={[C.lav1, C.lav2, C.lav3]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
         style={{ padding: 18 }}>
         <Row style={{ gap: 6 }}>
           <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: C.acc }} />
           <Text style={{ color: C.acc, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>{label}</Text>
         </Row>
-        <Text style={{ color: C.tx, fontSize: 26, fontWeight: '700', marginTop: 8, letterSpacing: -0.4 }}>{title}</Text>
+        <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 26, fontWeight: '700', marginTop: 8, letterSpacing: -0.4 }}>{title}</Text>
         <Text style={{ color: C.mu, fontSize: 13, marginTop: 4 }}>{sub}</Text>
         {pct != null ? (
           <View style={{ height: 4, borderRadius: 2, backgroundColor: C.track, marginTop: 14, overflow: 'hidden' }}>
@@ -318,7 +318,7 @@ export function Schedule({ S, update, T, k, onAdd }) {
   return (
     <View>
       <Row style={{ justifyContent: 'space-between', marginBottom: 4 }}>
-        <Text style={{ color: C.tx, fontSize: 20, fontWeight: '700' }}>Programme</Text>
+        <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 20, fontWeight: '700' }}>Programme</Text>
         <Btn label="+ Ajouter" ghost onPress={onAdd} textStyle={{ fontSize: 13 }} style={{ paddingVertical: 6 }} />
       </Row>
       <Mu>{ev.length + ex.length} prévu{ev.length + ex.length > 1 ? 's' : ''}{bookedTx}</Mu>

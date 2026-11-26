@@ -125,7 +125,7 @@ export const s = StyleSheet.create({
     borderColor: C.line,
   },
   hero: { borderColor: C.accLine },
-  h: { color: C.tx, fontSize: 16, fontWeight: '600', marginBottom: 4 },
+  h: { color: C.tx, fontSize: 17, fontWeight: '700', fontFamily: C.serif, marginBottom: 4 },
   mu: { color: C.mu, fontSize: 13 },
   tx: { color: C.tx, fontSize: 15 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },

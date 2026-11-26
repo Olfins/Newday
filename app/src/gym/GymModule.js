@@ -96,7 +96,7 @@ function Home({ S, update, T, onClose, insets }) {
       <TopBar label="Retour" onPress={onClose} />
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 + insets.bottom, gap: 14, width: '100%', maxWidth: 560, alignSelf: 'center' }}>
         <View>
-          <Text style={{ color: C.tx, fontSize: 32, fontWeight: '700', letterSpacing: -0.8 }}>Salle</Text>
+          <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 32, fontWeight: '700', letterSpacing: -0.3 }}>Salle</Text>
           <Mu>Choisis ta séance selon ton énergie du jour.</Mu>
         </View>
         {doneToday.length ? (
@@ -164,14 +164,14 @@ function SessionCard({ lv, se }) {
   const mus = sessionMuscles(se);
   return (
     <View style={{ flex: 1, borderRadius: 28, overflow: 'hidden' }}>
-      <LinearGradient colors={[C.lav1, C.lav2, '#F7F6FD']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 18, flex: 1 }}>
+      <LinearGradient colors={[C.lav1, C.lav2, C.lav3]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 18, flex: 1 }}>
         <Row style={{ justifyContent: 'space-between' }}>
           <Text style={{ color: C.acc, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>{lv.full.toUpperCase()}</Text>
           <Chip text={lv.duration} />
         </Row>
         <Row style={{ alignItems: 'center', marginTop: 6 }}>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: C.tx, fontSize: 27, fontWeight: '700', letterSpacing: -0.5 }}>{se.name}</Text>
+            <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 27, fontWeight: '700', letterSpacing: -0.2 }}>{se.name}</Text>
             <Text style={{ color: C.mu, fontSize: 13, marginTop: 6 }}>{se.exercises.length} {lv.unit}</Text>
           </View>
           <Row style={{ gap: 0 }}>
@@ -307,7 +307,7 @@ function Run({ S, update, T, run, onClose, insets }) {
         keyboardShouldPersistTaps="handled">
         <View>
           <Text style={{ color: C.acc, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>SÉANCE EN COURS · DEPUIS {run.start}</Text>
-          <Text style={{ color: C.tx, fontSize: 30, fontWeight: '700', letterSpacing: -0.6, marginTop: 4 }}>{se.name}</Text>
+          <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 30, fontWeight: '700', letterSpacing: -0.2, marginTop: 4 }}>{se.name}</Text>
           <Mu>{lv.full} · {done}/{total} {lv.unit}</Mu>
           <View style={{ height: 6, borderRadius: 3, backgroundColor: C.track, marginTop: 10, overflow: 'hidden' }}>
             <View style={{ width: Math.round((100 * done) / total) + '%', height: '100%', backgroundColor: C.pri }} />
@@ -443,7 +443,7 @@ function RestBar({ timer, insets }) {
   return (
     <View style={{ position: 'absolute', left: 12, right: 12, bottom: insets.bottom + 12, alignItems: 'center' }} pointerEvents="box-none">
       <View style={{
-        width: '100%', maxWidth: 536, borderRadius: 26, padding: 14, backgroundColor: 'rgba(22,22,28,0.95)',
+        width: '100%', maxWidth: 536, borderRadius: 26, padding: 14, backgroundColor: C.bar,
         shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 18, shadowOffset: { width: 0, height: 8 },
       }}>
         <View style={{ height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.15)', overflow: 'hidden', marginBottom: 8 }}>

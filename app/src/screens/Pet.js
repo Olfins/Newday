@@ -20,7 +20,7 @@ function Adopt({ update, T, wide }) {
   return (
     <>
       <View>
-        <Text style={{ color: C.tx, fontSize: 22, fontWeight: '700' }}>Crée ton compagnon</Text>
+        <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 22, fontWeight: '700' }}>Crée ton compagnon</Text>
         <Mu style={{ marginTop: 4 }}>Il commence chaton et grandit quand tu tiens tes habitudes. Choisis chaque détail, tu pourras le changer plus tard.</Mu>
       </View>
       <Creator initial={DEFAULT_LOOK} wide={wide} onDone={(look, name) => update((s) => adopt(s, T, look, name))} />
@@ -75,7 +75,7 @@ function Home({ S, update, T, wide }) {
   return (
     <Grid wide={wide}>
       <View style={{ borderRadius: 28, overflow: 'hidden' }}>
-        <LinearGradient colors={[C.lav1, C.lav2, '#F7F6FD']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 18, alignItems: 'center' }}>
+        <LinearGradient colors={[C.lav1, C.lav2, C.lav3]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 18, alignItems: 'center' }}>
           <Row style={{ alignSelf: 'stretch', justifyContent: 'space-between' }}>
             <Text style={{ color: C.acc, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>{STAGES[st].toUpperCase()}</Text>
             <View style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.6)' }}>
@@ -85,7 +85,7 @@ function Home({ S, update, T, wide }) {
             </View>
           </Row>
           <Cat look={look} stage={st} mood={mood} size={230} name={pet.name} message={bubble} scene={scene} />
-          <Text style={{ color: C.tx, fontSize: 28, fontWeight: '700', letterSpacing: -0.5 }}>{pet.name}</Text>
+          <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 28, fontWeight: '700', letterSpacing: -0.2 }}>{pet.name}</Text>
           <Mu style={{ textAlign: 'center', marginTop: 2 }}>{shownText}</Mu>
           <Pressable onPress={() => setEdit(true)} accessibilityRole="button" accessibilityLabel="Modifier son apparence"
             style={{ marginTop: 10, paddingVertical: 6, paddingHorizontal: 14, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.7)' }}>

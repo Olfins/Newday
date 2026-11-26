@@ -75,7 +75,7 @@ function Main() {
             <current.Icon size={24} color={C.acc} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: C.tx, fontSize: 32, fontWeight: '700', letterSpacing: -0.8 }}>{title}</Text>
+            <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 32, fontWeight: '700', letterSpacing: -0.3 }}>{title}</Text>
           </View>
         </View>
         <Screen S={S} update={update} replace={replace} T={T} cd={cd} setCd={setCd} wide={wide} openAdd={setAdd} openGym={() => setGym(true)} />
@@ -87,7 +87,7 @@ function Main() {
             accessibilityRole="tablist"
             style={{
               flexDirection: 'row', gap: 4, padding: 6, borderRadius: 999,
-              backgroundColor: 'rgba(22,22,28,0.94)',
+              backgroundColor: C.bar,
               shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 16, shadowOffset: { width: 0, height: 6 },
             }}
           >
@@ -117,7 +117,7 @@ function Main() {
             accessibilityLabel="Ajouter"
             style={({ pressed }) => ({
               width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center',
-              backgroundColor: 'rgba(22,22,28,0.94)', opacity: pressed ? 0.8 : 1,
+              backgroundColor: C.bar, opacity: pressed ? 0.8 : 1,
               shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 16, shadowOffset: { width: 0, height: 6 },
             })}
           >

@@ -1,34 +1,40 @@
 // Couleurs et tailles utilisées partout dans l'app.
-// Design clair inspiré de Needt : fond lavande très pâle, cartes blanches,
-// noir pour ce qui est sélectionné, lavande pour les touches de couleur.
+// Design « Bureau chaleureux » : fond crème, cartes beige clair, vert sapin pour
+// ce qui est choisi, touches de laiton doré, titres avec une police à empattements.
+import { Platform } from 'react-native';
+
 export const C = {
-  bg: '#F3F2F9',
-  card: '#FFFFFF',
-  card2: '#F1F0F7',
-  field: '#F6F5FB',
-  line: '#E7E5F0',
-  track: 'rgba(30,28,60,0.07)',
-  ring: 'rgba(30,28,60,0.22)',
-  tx: '#15151B',
-  mu: '#8A8998',
-  pri: '#17171D', // noir : jour choisi, cases cochées, boutons actifs
-  onPri: '#FFFFFF', // texte posé sur le noir
-  acc: '#6C5FD4', // lavande foncée : petites touches de couleur
-  accSoft: 'rgba(108,95,212,0.10)',
-  accLine: 'rgba(108,95,212,0.35)',
-  lav1: '#CBC6F2', // dégradé lavande des cartes mises en avant
-  lav2: '#E7E4FA',
-  red: '#E0564B',
+  bg: '#F2EBDC', // crème
+  card: '#FBF7EE', // beige clair
+  card2: '#F3ECDD',
+  field: '#F6F0E4',
+  line: '#E4D9C3',
+  track: 'rgba(70,52,20,0.09)',
+  ring: 'rgba(70,52,20,0.24)',
+  tx: '#22302A', // presque noir, teinté de vert
+  mu: '#877C69', // gris chaud
+  pri: '#1F4D3A', // vert sapin : jour choisi, cases cochées, boutons actifs
+  onPri: '#FBF7EE', // texte posé sur le vert
+  acc: '#A87F33', // laiton : petites touches dorées
+  accSoft: 'rgba(168,127,51,0.12)',
+  accLine: 'rgba(168,127,51,0.40)',
+  lav1: '#E6D5AE', // dégradé doré des cartes mises en avant
+  lav2: '#F1E6CC',
+  lav3: '#FAF4E7',
+  bar: 'rgba(28,58,44,0.97)', // barre d'onglets et minuteur (vert sapin foncé)
+  red: '#B4483A',
+  // Police à empattements pour les titres (déjà présente sur chaque appareil).
+  serif: Platform.select({ ios: 'Georgia', android: 'serif', default: 'Georgia, "Times New Roman", serif' }),
 };
 
-// Intensité lavande (0 à 1) pour les cases de calendrier et de régularité.
-export const accA = (a) => `rgba(108,95,212,${Math.max(0, Math.min(1, a)).toFixed(2)})`;
+// Intensité de vert (0 à 1) pour les cases de calendrier et de régularité.
+export const accA = (a) => `rgba(31,77,58,${Math.max(0, Math.min(1, a)).toFixed(2)})`;
 
 // Couleur de chaque type d'événement de l'agenda.
 export const TYPES = [
-  { id: 'cours', label: 'Cours', color: '#6C5FD4' },
-  { id: 'rdv', label: 'RDV', color: '#F08A3C' },
-  { id: 'ex', label: 'Examen', color: '#E0564B' },
-  { id: 'au', label: 'Autre', color: '#3DB989' },
+  { id: 'cours', label: 'Cours', color: '#2F6B52' },
+  { id: 'rdv', label: 'RDV', color: '#B8862F' },
+  { id: 'ex', label: 'Examen', color: '#B4483A' },
+  { id: 'au', label: 'Autre', color: '#4F7596' },
 ];
 export const typeColor = (t) => (TYPES.find((x) => x.id === t) || TYPES[3]).color;

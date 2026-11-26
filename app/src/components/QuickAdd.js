@@ -51,7 +51,7 @@ export default function QuickAdd({ visible, onClose, update, k, T, initial = 'to
           padding: 20, paddingBottom: 34, width: '100%', maxWidth: 560, alignSelf: 'center',
         }}>
           <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: C.line, alignSelf: 'center', marginBottom: 14 }} />
-          <Text style={{ color: C.tx, fontSize: 22, fontWeight: '700' }}>Ajouter</Text>
+          <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 22, fontWeight: '700' }}>Ajouter</Text>
           <View style={{ flexDirection: 'row', gap: 4, padding: 4, borderRadius: 999, backgroundColor: C.bg, marginTop: 12 }}>
             {KINDS.map((x) => (
               <Pressable key={x.id} onPress={() => { setKind(x.id); setErr(''); }}
