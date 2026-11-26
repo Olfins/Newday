@@ -6,7 +6,6 @@ import { C } from '../theme';
 import { Btn, Card, Field, H, Mu, Row } from '../components/ui';
 import { CatDrawing } from './Cat';
 import { EYES, FURS, HAIR_COLORS, HAIRS, OUTFITS, PATTERNS, SEXES, SUITS, TIES, randomLook } from './looks';
-import { STAGES } from './rules';
 
 const NAMES = ['Charbon', 'Caramel', 'Moka', 'Biscotte', 'Pixel', 'Réglisse', 'Noisette', 'Gaston', 'Praline', 'Oscar', 'Mimi', 'Tofu'];
 
@@ -63,7 +62,6 @@ function Section({ title, sub, children }) {
 export default function Creator({ initial, initialName, onDone, onCancel, editing, stage = 0, wide }) {
   const [look, setLook] = useState(initial);
   const [name, setName] = useState(initialName || NAMES[0]);
-  const [preview, setPreview] = useState(stage);
   const set = (key) => (v) => setLook((l) => ({ ...l, [key]: v }));
   const finalName = name.trim() || 'Minou';
 
@@ -78,16 +76,8 @@ export default function Creator({ initial, initialName, onDone, onCancel, editin
             <Text style={{ color: C.tx, fontSize: 12, fontWeight: '700' }}>Au hasard</Text>
           </Pressable>
         </Row>
-        <CatDrawing look={look} stage={preview} mood="ok" size={wide ? 240 : 210} />
+        <CatDrawing look={look} stage={stage} mood="ok" size={wide ? 240 : 210} />
         <Text style={{ color: C.tx, fontSize: 24, fontWeight: '700', letterSpacing: -0.5 }}>{finalName}</Text>
-        <Row style={{ marginTop: 10, gap: 6 }}>
-          {STAGES.map((s, i) => (
-            <Pressable key={s} onPress={() => setPreview(i)} accessibilityRole="button" accessibilityState={{ selected: preview === i }} accessibilityLabel={'Aperçu ' + s}
-              style={{ paddingVertical: 5, paddingHorizontal: 10, borderRadius: 999, backgroundColor: preview === i ? C.pri : 'rgba(255,255,255,0.6)' }}>
-              <Text style={{ color: preview === i ? C.onPri : C.tx, fontSize: 12, fontWeight: '600' }}>{s}</Text>
-            </Pressable>
-          ))}
-        </Row>
       </LinearGradient>
     </View>
   );

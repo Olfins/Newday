@@ -3,10 +3,14 @@
 // Quatre tailles (chaton, jeune, adulte, PDG) et trois humeurs.
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, PanResponder, Text, Vibration, View } from 'react-native';
-import Svg, { Circle, Ellipse, G, Line, Path, Polygon, Rect } from 'react-native-svg';
+import Svg, { Circle, Ellipse, G, Line, Path, Rect } from 'react-native-svg';
 import { lookOf, palette } from './looks';
 
-const pts = (a) => a.map((p) => p.join(',')).join(' ');
+const pts = (a) => a.map((p) => p.map((v) => +v.toFixed(2)).join(',')).join(' ');
+// Les polygones sont dessinés comme des tracés (plus simple et identique partout).
+// Attention : pas de « key » sur les groupes de la tête. Sur le web, ils laissaient
+// les anciennes oreilles à l'écran quand le chat changeait de taille.
+const Polygon = ({ points, ...rest }) => <Path d={'M' + points.split(' ').join(' L') + ' Z'} {...rest} />;
 const toward = (p, c, f) => [p[0] + (c[0] - p[0]) * f, p[1] + (c[1] - p[1]) * f];
 
 // look : l'apparence choisie ; kind : ancien choix ('noir' ou 'roux'), utilisé si look manque.
@@ -31,7 +35,7 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
     const a = [cx + s * hr * 0.88, hy - hr * 0.3], b = [cx + s * hr * 0.6, hy - hr * 1.18], c = [cx + s * hr * 0.12, hy - hr * 0.82];
     const m = [(a[0] + b[0] + c[0]) / 3, (a[1] + b[1] + c[1]) / 3];
     return (
-      <G key={s}>
+      <G>
         <Polygon points={pts([a, b, c])} fill={P.fur} stroke={P.fur} strokeWidth="6" strokeLinejoin="round" />
         <Polygon points={pts([toward(a, m, 0.4), toward(b, m, 0.35), toward(c, m, 0.4)])} fill={P.ear} />
       </G>
@@ -40,18 +44,18 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
 
   // Cils pour une fille.
   const lashes = (s, ex, ey, r) => (L.sex === 'f' ? (
-    <Path key={'l' + s} d={`M${ex + s * r * 0.75} ${ey - r * 0.55} l${s * 4} -3 M${ex + s * r * 0.95} ${ey - r * 0.1} l${s * 4.5} -1`} stroke={P.dark ? P.line : '#3A2A1E'} strokeWidth="1.8" strokeLinecap="round" />
+    <Path d={`M${ex + s * r * 0.75} ${ey - r * 0.55} l${s * 4} -3 M${ex + s * r * 0.95} ${ey - r * 0.1} l${s * 4.5} -1`} stroke={P.dark ? P.line : '#3A2A1E'} strokeWidth="1.8" strokeLinecap="round" />
   ) : null);
 
   const eye = (s) => {
     const ex = cx + s * hr * 0.4, ey = hy - hr * 0.04;
     if (mood === 'happy') {
-      return <G key={s}><Path d={`M${ex - er} ${ey + 2} Q${ex} ${ey - er * 1.2} ${ex + er} ${ey + 2}`} stroke={lidC} strokeWidth="3.2" strokeLinecap="round" fill="none" />{lashes(s, ex, ey + 2, er)}</G>;
+      return <G><Path d={`M${ex - er} ${ey + 2} Q${ex} ${ey - er * 1.2} ${ex + er} ${ey + 2}`} stroke={lidC} strokeWidth="3.2" strokeLinecap="round" fill="none" />{lashes(s, ex, ey + 2, er)}</G>;
     }
     const r = mood === 'hungry' ? er * 0.85 : er;
-    if (blink) return <G key={s}><Path d={`M${ex - r} ${ey + 1} Q${ex} ${ey + r * 0.6} ${ex + r} ${ey + 1}`} stroke={lidC} strokeWidth="3" strokeLinecap="round" fill="none" />{lashes(s, ex, ey + 2, r)}</G>;
+    if (blink) return <G><Path d={`M${ex - r} ${ey + 1} Q${ex} ${ey + r * 0.6} ${ex + r} ${ey + 1}`} stroke={lidC} strokeWidth="3" strokeLinecap="round" fill="none" />{lashes(s, ex, ey + 2, r)}</G>;
     return (
-      <G key={s}>
+      <G>
         <Circle cx={ex} cy={ey} r={r} fill={P.eye} />
         <Ellipse cx={ex} cy={ey + 0.5} rx={r * 0.45} ry={r * 0.8} fill={P.pupil} />
         <Circle cx={ex + r * 0.3} cy={ey - r * 0.35} r={r * 0.22} fill="#FFFFFF" />
