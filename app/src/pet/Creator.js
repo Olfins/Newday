@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { C } from '../theme';
 import { Btn, Card, Field, H, Mu, Row } from '../components/ui';
 import { CatDrawing } from './Cat';
-import { EYES, FURS, HAIR_COLORS, HAIRS, OUTFITS, PATTERNS, SEXES, SUITS, TIES, randomLook } from './looks';
+import { ACCESSORIES, EYES, FURS, OUTFITS, PATTERNS, SEXES, SUITS, TIES, randomLook } from './looks';
 
 const NAMES = ['Charbon', 'Caramel', 'Moka', 'Biscotte', 'Pixel', 'Réglisse', 'Noisette', 'Gaston', 'Praline', 'Oscar', 'Mimi', 'Tofu'];
 
@@ -96,12 +96,7 @@ export default function Creator({ initial, initialName, onDone, onCancel, editin
           <Section title="Pelage" sub={FURS[look.fur].label}><Swatches title="Pelage" options={FURS} value={look.fur} onPick={set('fur')} color={(k, o) => o.fur} /></Section>
           <Section title="Motif"><Chips title="Motif" options={PATTERNS} value={look.pat} onPick={set('pat')} /></Section>
           <Section title="Yeux" sub={EYES[look.eye].label}><Swatches title="Yeux" options={EYES} value={look.eye} onPick={set('eye')} color={(k, o) => o.c} /></Section>
-          <Section title="Coupe de cheveux"><Chips title="Coupe" options={HAIRS} value={look.hair} onPick={set('hair')} /></Section>
-          {look.hair !== 'none' ? (
-            <Section title="Couleur des cheveux" sub={HAIR_COLORS[look.hc].label}>
-              <Swatches title="Couleur des cheveux" options={HAIR_COLORS} value={look.hc} onPick={set('hc')} color={(k, o) => o.c} />
-            </Section>
-          ) : null}
+          <Section title="Accessoire"><Chips title="Accessoire" options={ACCESSORIES} value={look.acc} onPick={set('acc')} /></Section>
         </Card>
         <Card>
           <H>La tenue</H>

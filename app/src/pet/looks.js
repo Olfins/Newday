@@ -1,4 +1,4 @@
-// Les choix pour créer son chat : pelage, motif, yeux, coiffure, tenue, couleurs, garçon ou fille.
+// Les choix pour créer son chat : pelage, motif, yeux, accessoire, tenue, couleurs, garçon ou fille.
 // Chaque option a un libellé en français et ses couleurs.
 
 export const FURS = {
@@ -22,22 +22,13 @@ export const EYES = {
   marron: { label: 'Marron', c: '#8A5A32' },
   violet: { label: 'Violet', c: '#9D8CF0' },
 };
-export const HAIRS = {
-  none: { label: 'Aucune' },
-  meche: { label: 'Mèche' },
-  frange: { label: 'Frange' },
-  crete: { label: 'Crête' },
-  chignon: { label: 'Chignon' },
-  longs: { label: 'Longs' },
-};
-export const HAIR_COLORS = {
-  assorti: { label: 'Comme le pelage', c: null },
-  noir: { label: 'Noir', c: '#1E1E26' },
-  brun: { label: 'Brun', c: '#6B4226' },
-  blond: { label: 'Blond', c: '#E8C468' },
-  roux: { label: 'Roux', c: '#D9682B' },
-  rose: { label: 'Rose', c: '#F19CB7' },
-  bleu: { label: 'Bleu', c: '#5B8DEF' },
+export const ACCESSORIES = {
+  none: { label: 'Aucun' },
+  lunettes: { label: 'Lunettes' },
+  soleil: { label: 'Lunettes de soleil' },
+  feutre: { label: 'Chapeau feutre' },
+  beret: { label: 'Béret' },
+  casquette: { label: 'Casquette' },
 };
 export const OUTFITS = {
   cravate: { label: 'Costume et cravate' },
@@ -66,8 +57,8 @@ export const SEXES = { m: { label: 'Garçon', il: 'il', e: '' }, f: { label: 'Fi
 
 // Les deux chats d'origine, pour les compagnons déjà adoptés.
 export const PRESETS = {
-  noir: { fur: 'noir', pat: 'uni', eye: 'vert', hair: 'none', hc: 'assorti', out: 'cravate', suit: 'marine', tie: 'violet', sex: 'm' },
-  roux: { fur: 'roux', pat: 'tigre', eye: 'marron', hair: 'none', hc: 'assorti', out: 'noeud', suit: 'violet', tie: 'orange', sex: 'f' },
+  noir: { fur: 'noir', pat: 'uni', eye: 'vert', acc: 'none', out: 'cravate', suit: 'marine', tie: 'violet', sex: 'm' },
+  roux: { fur: 'roux', pat: 'tigre', eye: 'marron', acc: 'none', out: 'noeud', suit: 'violet', tie: 'orange', sex: 'f' },
 };
 export const DEFAULT_LOOK = PRESETS.noir;
 
@@ -75,13 +66,17 @@ export const DEFAULT_LOOK = PRESETS.noir;
 export function lookOf(pet) {
   if (!pet) return DEFAULT_LOOK;
   if (typeof pet === 'string') return PRESETS[pet] || DEFAULT_LOOK;
-  return { ...(PRESETS[pet.kind] || DEFAULT_LOOK), ...(pet.look || {}) };
+  const l = { ...(PRESETS[pet.kind] || DEFAULT_LOOK), ...(pet.look || {}) };
+  // Les anciennes coiffures n'existent plus : on les remplace par « aucun accessoire ».
+  delete l.hair; delete l.hc;
+  if (!ACCESSORIES[l.acc]) l.acc = 'none';
+  return l;
 }
 
 const keys = (o) => Object.keys(o);
 const any = (o) => { const k = keys(o); return k[Math.floor(Math.random() * k.length)]; };
 export function randomLook() {
-  return { fur: any(FURS), pat: any(PATTERNS), eye: any(EYES), hair: any(HAIRS), hc: any(HAIR_COLORS), out: any(OUTFITS), suit: any(SUITS), tie: any(TIES), sex: any(SEXES) };
+  return { fur: any(FURS), pat: any(PATTERNS), eye: any(EYES), acc: any(ACCESSORIES), out: any(OUTFITS), suit: any(SUITS), tie: any(TIES), sex: any(SEXES) };
 }
 
 // Assombrit une couleur (#RRGGBB) : f = 0.8 donne 80 % de la luminosité.
@@ -105,7 +100,6 @@ export function palette(look) {
     suit,
     suitD: shade(suit, 0.75),
     accent: (TIES[L.tie] || TIES.violet).c,
-    hair: (HAIR_COLORS[L.hc] && HAIR_COLORS[L.hc].c) || F.furD,
     arm: L.out === 'gilet' ? '#FFFFFF' : suit,
     paw: socks ? '#FFFFFF' : F.fur,
     muzzle: socks ? '#FFFFFF' : F.muzzle,

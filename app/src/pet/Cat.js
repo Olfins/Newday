@@ -1,5 +1,5 @@
 // Les chats dessinés en traits simples (pas d'images). L'apparence vient des choix
-// de l'utilisateur (voir looks.js) : pelage, motif, yeux, coiffure, tenue, couleurs.
+// de l'utilisateur (voir looks.js) : pelage, motif, yeux, accessoire, tenue, couleurs.
 // Quatre tailles (chaton, jeune, adulte, PDG) et trois humeurs.
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, PanResponder, Text, Vibration, View } from 'react-native';
@@ -89,28 +89,33 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
   );
   const bodyPath = `M${cx - bw / 2} ${base} L${cx - bw / 2} ${top + 18} Q${cx - bw / 2} ${top} ${cx - bw / 2 + 18} ${top} L${cx + bw / 2 - 18} ${top} Q${cx + bw / 2} ${top} ${cx + bw / 2} ${top + 18} L${cx + bw / 2} ${base} Z`;
 
-  // Coiffure, dessinée sur le haut de la tête.
-  const hair = () => {
-    const H = P.hair;
-    switch (L.hair) {
-      case 'meche':
-        return <Path d={`M${cx - 7} ${hy - hr * 0.78} Q${cx - 6} ${hy - hr * 1.3} ${cx + 10} ${hy - hr * 1.2} Q${cx + 1} ${hy - hr * 1.08} ${cx + 4} ${hy - hr * 0.8} Z`} fill={H} />;
-      case 'frange':
-        return <Path d={`M${cx - hr * 0.64} ${hy - hr * 0.42} Q${cx - hr * 0.52} ${hy - hr * 0.98} ${cx} ${hy - hr * 0.96} Q${cx + hr * 0.52} ${hy - hr * 0.98} ${cx + hr * 0.64} ${hy - hr * 0.42} L${cx + hr * 0.42} ${hy - hr * 0.6} L${cx + hr * 0.22} ${hy - hr * 0.4} L${cx} ${hy - hr * 0.6} L${cx - hr * 0.22} ${hy - hr * 0.4} L${cx - hr * 0.42} ${hy - hr * 0.6} Z`} fill={H} strokeLinejoin="round" stroke={H} strokeWidth="2" />;
-      case 'crete':
-        return <Polygon points={pts([[cx - 12, hy - hr * 0.8], [cx - 10, hy - hr * 1.22], [cx - 4, hy - hr * 0.9], [cx, hy - hr * 1.36], [cx + 4, hy - hr * 0.9], [cx + 10, hy - hr * 1.22], [cx + 12, hy - hr * 0.8]])} fill={H} stroke={H} strokeWidth="2" strokeLinejoin="round" />;
-      case 'chignon':
+  // Accessoire : lunettes ou chapeau. Les lunettes remplacent celles du PDG.
+  const glasses = L.acc === 'lunettes' || (stage === 3 && L.acc !== 'soleil');
+  const hat = () => {
+    switch (L.acc) {
+      case 'feutre':
         return (
           <G>
-            <Circle cx={cx} cy={hy - hr * 1.02} r={hr * 0.27} fill={H} />
-            <Rect x={cx - hr * 0.22} y={hy - hr * 0.86} width={hr * 0.44} height="4" rx="2" fill={P.accent} />
+            <Path d={`M${cx - hr * 0.5} ${hy - hr * 0.8} L${cx - hr * 0.4} ${hy - hr * 1.36} Q${cx} ${hy - hr * 1.18} ${cx + hr * 0.4} ${hy - hr * 1.36} L${cx + hr * 0.5} ${hy - hr * 0.8} Z`} fill={P.dark ? '#8C8070' : '#3D3B4A'} />
+            <Rect x={cx - hr * 0.49} y={hy - hr * 0.97} width={hr * 0.98} height={hr * 0.13} fill={P.accent} />
+            <Ellipse cx={cx} cy={hy - hr * 0.8} rx={hr * 0.88} ry={hr * 0.14} fill={P.dark ? '#73695C' : '#2E2C3A'} />
           </G>
         );
-      case 'longs':
+      case 'beret':
         return (
-          <G fill={H}>
-            <Path d={`M${cx - hr * 0.2} ${hy - hr * 0.9} Q${cx - hr * 1.12} ${hy - hr * 0.7} ${cx - hr * 1.02} ${hy + hr * 0.8} Q${cx - hr * 0.8} ${hy + hr * 0.4} ${cx - hr * 0.7} ${hy - hr * 0.3} Q${cx - hr * 0.45} ${hy - hr * 0.62} ${cx} ${hy - hr * 0.7} Z`} />
-            <Path d={`M${cx + hr * 0.2} ${hy - hr * 0.9} Q${cx + hr * 1.12} ${hy - hr * 0.7} ${cx + hr * 1.02} ${hy + hr * 0.8} Q${cx + hr * 0.8} ${hy + hr * 0.4} ${cx + hr * 0.7} ${hy - hr * 0.3} Q${cx + hr * 0.45} ${hy - hr * 0.62} ${cx} ${hy - hr * 0.7} Z`} />
+          <G>
+            <Ellipse cx={cx + hr * 0.1} cy={hy - hr * 0.8} rx={hr * 0.62} ry={hr * 0.24} fill={P.accent} />
+            <Path d={`M${cx - hr * 0.42} ${hy - hr * 0.72} Q${cx} ${hy - hr * 0.62} ${cx + hr * 0.5} ${hy - hr * 0.7}`} stroke={P.accent} strokeWidth="4" strokeLinecap="round" fill="none" />
+            <Line x1={cx + hr * 0.1} y1={hy - hr * 1.03} x2={cx + hr * 0.16} y2={hy - hr * 1.13} stroke={P.accent} strokeWidth="3" strokeLinecap="round" />
+          </G>
+        );
+      case 'casquette':
+        return (
+          <G>
+            <Ellipse cx={cx + hr * 0.42} cy={hy - hr * 0.7} rx={hr * 0.42} ry={hr * 0.1} fill={P.suitD} />
+            <Path d={`M${cx - hr * 0.56} ${hy - hr * 0.68} Q${cx - hr * 0.52} ${hy - hr * 1.22} ${cx} ${hy - hr * 1.22} Q${cx + hr * 0.52} ${hy - hr * 1.22} ${cx + hr * 0.56} ${hy - hr * 0.68} Z`} fill={P.suit} />
+            <Circle cx={cx} cy={hy - hr * 1.2} r="2.6" fill={P.accent} />
+            <Line x1={cx} y1={hy - hr * 1.18} x2={cx} y2={hy - hr * 0.72} stroke={P.suitD} strokeWidth="1.2" />
           </G>
         );
       default:
@@ -189,7 +194,6 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
           <Line x1={cx + hr * 0.9} y1={hy + hr * 0.02} x2={cx + hr * 0.74} y2={hy + hr * 0.06} />
         </G>
       ) : null}
-      {hair()}
       <Ellipse cx={cx} cy={hy + hr * 0.33} rx={hr * 0.38} ry={hr * 0.25} fill={P.muzzle} />
       {eye(-1)}{eye(1)}
       {mood === 'happy' ? (
@@ -205,13 +209,23 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
           <Line key={s + '' + d} x1={cx + s * hr * 0.42} y1={hy + hr * 0.3 + d * 0.4} x2={cx + s * hr * 1.08} y2={hy + hr * 0.26 + d * 1.6} />
         )))}
       </G>
-      {stage === 3 ? (
+      {glasses ? (
         <G stroke="#17171D" strokeWidth="2.5" fill="none">
           <Circle cx={cx - hr * 0.4} cy={hy - hr * 0.04} r={hr * 0.24} />
           <Circle cx={cx + hr * 0.4} cy={hy - hr * 0.04} r={hr * 0.24} />
           <Line x1={cx - hr * 0.16} y1={hy - hr * 0.06} x2={cx + hr * 0.16} y2={hy - hr * 0.06} />
         </G>
       ) : null}
+      {L.acc === 'soleil' ? (
+        <G>
+          <Rect x={cx - hr * 0.68} y={hy - hr * 0.2} width={hr * 0.56} height={hr * 0.34} rx={hr * 0.12} fill="#17171D" />
+          <Rect x={cx + hr * 0.12} y={hy - hr * 0.2} width={hr * 0.56} height={hr * 0.34} rx={hr * 0.12} fill="#17171D" />
+          <Line x1={cx - hr * 0.14} y1={hy - hr * 0.1} x2={cx + hr * 0.14} y2={hy - hr * 0.1} stroke="#17171D" strokeWidth="2.5" />
+          <Line x1={cx - hr * 0.56} y1={hy - hr * 0.1} x2={cx - hr * 0.44} y2={hy - hr * 0.02} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
+          <Line x1={cx + hr * 0.24} y1={hy - hr * 0.1} x2={cx + hr * 0.36} y2={hy - hr * 0.02} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
+        </G>
+      ) : null}
+      {hat()}
       {scene === 'work' ? <Desk P={P} cx={cx} bw={bw} top={top} t={t} /> : null}
       {holds ? <Hold P={P} scene={scene} cx={cx} bw={bw} top={top} bh={bh} hr={hr} my={my} sip={sip} t={t} /> : null}
     </Svg>
