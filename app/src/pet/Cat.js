@@ -18,8 +18,15 @@ const LOOKS = {
 const pts = (a) => a.map((p) => p.join(',')).join(' ');
 const toward = (p, c, f) => [p[0] + (c[0] - p[0]) * f, p[1] + (c[1] - p[1]) * f];
 
-export function CatDrawing({ kind = 'noir', stage = 0, mood = 'happy', size = 200, tail = 0, blink = false }) {
+// scene : null (normal), 'work' (au PC), ou une pause : 'coffee', 'walk', 'snack', 'water'.
+// t : temps en secondes, pour animer la scène.
+export function CatDrawing({ kind = 'noir', stage = 0, mood: mood0 = 'happy', size = 200, tail = 0, blink = false, scene = null, t = 0 }) {
   const P = LOOKS[kind] || LOOKS.noir;
+  // Gorgée / bouchée : 0 = main en bas, 1 = main à la bouche.
+  const holds = scene === 'coffee' || scene === 'water' || scene === 'snack';
+  const sipRaw = (Math.sin(t * 1.5) + 1) / 2;
+  const sip = holds ? Math.min(1, Math.max(0, (sipRaw - 0.25) / 0.6)) : 0;
+  const mood = scene === 'work' ? 'ok' : holds && sip > 0.85 ? 'happy' : scene ? 'happy' : mood0;
   const hr = [48, 45, 42, 42][stage];
   const bw = [56, 68, 78, 84][stage];
   const bh = [48, 62, 76, 84][stage];
@@ -60,7 +67,10 @@ export function CatDrawing({ kind = 'noir', stage = 0, mood = 'happy', size = 20
   };
 
   const my = hy + hr * 0.36;
-  const mouth = mood === 'hungry'
+  const chew = scene === 'snack' && sip > 0.6 ? Math.abs(Math.sin(t * 9)) : 0;
+  const mouth = chew
+    ? `M${cx - 5} ${my} Q${cx} ${my + 3 + chew * 6} ${cx + 5} ${my} Z`
+    : mood === 'hungry'
     ? `M${cx - 6} ${my + 4} Q${cx} ${my - 2} ${cx + 6} ${my + 4}`
     : mood === 'happy'
       ? `M${cx - 8} ${my} Q${cx - 4} ${my + 7} ${cx} ${my} Q${cx + 4} ${my + 7} ${cx + 8} ${my}`
@@ -103,8 +113,8 @@ export function CatDrawing({ kind = 'noir', stage = 0, mood = 'happy', size = 20
       <Circle cx={cx} cy={top + bh * 0.76} r="2.4" fill={P.suitD} />
       {stage >= 2 ? <Polygon points={pts([[cx - bw / 2 + 9, top + bh * 0.34], [cx - bw / 2 + 21, top + bh * 0.34], [cx - bw / 2 + 15, top + bh * 0.26]])} fill="#FFFFFF" /> : null}
       {/* Pattes */}
-      <Ellipse cx={cx - bw / 4} cy={base} rx={bw / 6} ry="7" fill={P.fur} />
-      <Ellipse cx={cx + bw / 4} cy={base} rx={bw / 6} ry="7" fill={P.fur} />
+      <Ellipse cx={cx - bw / 4} cy={base - (scene === 'walk' ? Math.max(0, Math.sin(t * 7)) * 6 : 0)} rx={bw / 6} ry="7" fill={P.fur} />
+      <Ellipse cx={cx + bw / 4} cy={base - (scene === 'walk' ? Math.max(0, -Math.sin(t * 7)) * 6 : 0)} rx={bw / 6} ry="7" fill={P.fur} />
       {/* Tête */}
       {ear(-1)}{ear(1)}
       <Ellipse cx={cx} cy={hy} rx={hr} ry={hr * 0.9} fill={P.fur} />
@@ -137,7 +147,89 @@ export function CatDrawing({ kind = 'noir', stage = 0, mood = 'happy', size = 20
           <Line x1={cx - hr * 0.16} y1={hy - hr * 0.06} x2={cx + hr * 0.16} y2={hy - hr * 0.06} />
         </G>
       ) : null}
+      {scene === 'work' ? <Desk P={P} cx={cx} bw={bw} top={top} t={t} /> : null}
+      {holds ? <Hold P={P} scene={scene} cx={cx} bw={bw} top={top} bh={bh} hr={hr} my={my} sip={sip} t={t} /> : null}
     </Svg>
+  );
+}
+
+// Le bureau avec l'ordinateur portable ; les pattes tapent au clavier.
+function Desk({ P, cx, bw, top, t }) {
+  const lift = (ph) => Math.max(0, Math.sin(t * 13 + ph)) * 5;
+  const lx = cx - 48, rx = cx + 48, py = 190;
+  const l1 = lift(0), l2 = lift(Math.PI);
+  return (
+    <G>
+      <Line x1={cx - bw / 2 + 8} y1={top + 18} x2={lx} y2={py - l1} stroke={P.suit} strokeWidth="12" strokeLinecap="round" />
+      <Line x1={cx + bw / 2 - 8} y1={top + 18} x2={rx} y2={py - l2} stroke={P.suit} strokeWidth="12" strokeLinecap="round" />
+      <Rect x="6" y="196" width="188" height="10" rx="4" fill="#C9AE8E" />
+      <Rect x="6" y="204" width="188" height="6" rx="3" fill="#B39674" />
+      <Rect x={cx - 38} y="150" width="76" height="46" rx="6" fill="#E4E3EC" stroke="#C9C8D6" strokeWidth="2" />
+      <Circle cx={cx} cy="173" r="5" fill="#6C5FD4" opacity={0.6 + 0.4 * Math.abs(Math.sin(t * 2))} />
+      <Rect x={cx - 44} y="193" width="88" height="5" rx="2.5" fill="#B9B8C8" />
+      <Ellipse cx={lx} cy={py - l1} rx="9" ry="6" fill={P.fur} />
+      <Ellipse cx={rx} cy={py - l2} rx="9" ry="6" fill={P.fur} />
+      {/* Petits traits de frappe */}
+      {l1 > 3 ? <Path d={`M${lx - 12} ${py - 12} l-4 -4 M${lx - 4} ${py - 15} l0 -5`} stroke="#8A8998" strokeWidth="1.6" strokeLinecap="round" /> : null}
+      {l2 > 3 ? <Path d={`M${rx + 12} ${py - 12} l4 -4 M${rx + 4} ${py - 15} l0 -5`} stroke="#8A8998" strokeWidth="1.6" strokeLinecap="round" /> : null}
+      {/* Une petite plante sur le bureau */}
+      <Rect x="176" y="182" width="14" height="14" rx="3" fill="#F0EEF8" stroke="#D5D2E8" strokeWidth="1.5" />
+      <Path d="M183 182 C178 174 174 172 172 168 M183 182 C184 172 188 168 192 165 M183 182 C182 176 183 172 183 168" stroke="#7FB77E" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+    </G>
+  );
+}
+
+// La patte qui tient un café, un verre d'eau ou un biscuit.
+function Hold({ P, scene, cx, bw, top, bh, hr, my, sip, t }) {
+  const rest = [cx + bw / 2 + 4, top + bh * 0.55];
+  const mouthP = [cx + hr * 0.24, my + 8];
+  const hx = rest[0] + (mouthP[0] - rest[0]) * sip;
+  const hy = rest[1] + (mouthP[1] - rest[1]) * sip;
+  const tilt = scene === 'snack' ? 0 : -sip * 28;
+  let item = null;
+  if (scene === 'coffee') {
+    const steam = (k) => {
+      const o = ((t * 0.8 + k * 0.5) % 1);
+      return <Path key={k} d={`M${hx - 3 + k * 6} ${hy - 12 - o * 14} q3 -4 0 -8 q-3 -4 0 -8`} stroke="#B5B3C6" strokeWidth="2" strokeLinecap="round" fill="none" opacity={1 - o} />;
+    };
+    item = (
+      <G>
+        {sip < 0.5 ? [0, 1].map(steam) : null}
+        <G transform={`rotate(${tilt.toFixed(1)} ${hx} ${hy})`}>
+          <Path d={`M${hx + 8} ${hy - 4} q8 0 8 6 q0 6 -8 6`} stroke="#FFFFFF" strokeWidth="3" fill="none" />
+          <Rect x={hx - 9} y={hy - 9} width="18" height="20" rx="4" fill="#FFFFFF" stroke="#D5D2E8" strokeWidth="1.5" />
+          <Rect x={hx - 9} y={hy - 2} width="18" height="5" fill="#6C5FD4" />
+        </G>
+      </G>
+    );
+  } else if (scene === 'water') {
+    item = (
+      <G transform={`rotate(${tilt.toFixed(1)} ${hx} ${hy})`}>
+        <Polygon points={pts([[hx - 9, hy - 12], [hx + 9, hy - 12], [hx + 7, hy + 12], [hx - 7, hy + 12]])} fill="rgba(255,255,255,0.7)" stroke="#9CC7F0" strokeWidth="1.8" />
+        <Polygon points={pts([[hx - 8, hy - 2], [hx + 8, hy - 2], [hx + 7, hy + 11], [hx - 7, hy + 11]])} fill="#9CC7F0" opacity="0.8" />
+      </G>
+    );
+  } else {
+    const crumb = (k) => {
+      const o = ((t * 1.2 + k * 0.33) % 1);
+      return <Circle key={k} cx={hx - 6 + k * 6} cy={hy + 8 + o * 30} r="1.6" fill="#C98A4B" opacity={1 - o} />;
+    };
+    item = (
+      <G>
+        {sip > 0.6 ? [0, 1, 2].map(crumb) : null}
+        <Circle cx={hx} cy={hy - 4} r="10" fill="#D9A066" />
+        {[[-4, -7], [3, -2], [-2, 1], [5, -9]].map(([a, b], i) => <Circle key={i} cx={hx + a} cy={hy + b} r="1.6" fill="#6B4A2B" />)}
+      </G>
+    );
+  }
+  return (
+    <G>
+      <Line x1={cx + bw / 2 - 8} y1={top + 16} x2={hx} y2={hy + 4} stroke={P.suit} strokeWidth="12" strokeLinecap="round" />
+      <G transform={`translate(${hx} ${hy}) scale(1.5) translate(${-hx} ${-hy})`}>
+        {item}
+        <Ellipse cx={hx + 2} cy={hy + 5} rx="6" ry="5" fill={P.fur} />
+      </G>
+    </G>
   );
 }
 
@@ -149,6 +241,11 @@ const SAY = {
   boss: ['Je suis le PDG ici.', 'Réunion du conseil à 14 h.', 'Signons ce contrat.'],
   pet: ['Prrrr…', 'Prrrrrr…', 'Encore !', 'Ronron…', 'Juste là, oui…'],
   tap: ['Miaou !', 'Hé !', 'Oui ?', 'Miaou ?', 'Coucou !'],
+  work: ['Tap tap tap…', 'Concentration.', 'On avance bien !', 'Encore un mail…', 'Je relis le dossier.', 'On lâche rien !'],
+  coffee: ['Ah, un bon café.', 'Pause café bien méritée.', 'Slurp…'],
+  walk: ['Je me dégourdis les pattes.', 'Un peu d’air frais !', 'Ça fait du bien de bouger.'],
+  snack: ['Crunch crunch…', 'Un petit en-cas.', 'Miam, un biscuit.'],
+  water: ['Glou glou…', 'Il faut boire de l’eau !', 'Bien hydraté, bien concentré.'],
 };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
@@ -176,17 +273,17 @@ function FloatingHeart({ x, y, onDone }) {
 
 // Le chat vivant : il respire, cligne des yeux, bouge la queue, parle,
 // et réagit quand on le touche ou qu'on le caresse (glisser le doigt dessus).
-export default function Cat({ kind, stage, mood, size = 200, name, message }) {
+export default function Cat({ kind, stage, mood, size = 200, name, message, scene = null }) {
   const breathe = useRef(new Animated.Value(0)).current;
   const hop = useRef(new Animated.Value(0)).current;
   const bubbleV = useRef(new Animated.Value(0)).current;
-  const [tail, setTail] = useState(0);
+  const [time, setTime] = useState(0);
   const [blink, setBlink] = useState(false);
   const [bubble, setBubble] = useState('');
   const [hearts, setHearts] = useState([]);
   const [purring, setPurring] = useState(false);
   const live = useRef({});
-  live.current = { mood, stage, size };
+  live.current = { mood, stage, size, scene };
   const hideT = useRef(null), purrT = useRef(null);
 
   const say = (txt, ms = 2200) => {
@@ -197,7 +294,8 @@ export default function Cat({ kind, stage, mood, size = 200, name, message }) {
     hideT.current = setTimeout(() => Animated.timing(bubbleV, { toValue: 0, duration: 250, useNativeDriver: false }).start(), ms);
   };
   const randomLine = () => {
-    const { mood: m, stage: st } = live.current;
+    const { mood: m, stage: st, scene: sc } = live.current;
+    if (sc && SAY[sc]) return pick(SAY[sc]);
     const pool = [...SAY.any, ...(m === 'hungry' ? SAY.hungry.concat(SAY.hungry) : m === 'happy' ? SAY.happy : []), ...(st === 3 ? SAY.boss : [])];
     return pick(pool);
   };
@@ -211,7 +309,7 @@ export default function Cat({ kind, stage, mood, size = 200, name, message }) {
     a.start();
     // Queue qui balance doucement
     let t0 = Date.now();
-    const tailI = setInterval(() => setTail(Math.sin((Date.now() - t0) / 450) * 9), 60);
+    const tailI = setInterval(() => setTime((Date.now() - t0) / 1000), 60);
     // Clignement des yeux de temps en temps
     let blinkT;
     const loopBlink = () => {
@@ -230,6 +328,13 @@ export default function Cat({ kind, stage, mood, size = 200, name, message }) {
   useEffect(() => {
     if (message && message.text) { say(message.text, 2200); jump(); for (let i = 0; i < 3; i++) setTimeout(heart, i * 150); }
   }, [message && message.id]);
+
+  // Quand la scène change (travail, pause…), il le dit tout de suite.
+  const firstScene = useRef(true);
+  useEffect(() => {
+    if (firstScene.current) { firstScene.current = false; return; }
+    if (scene && SAY[scene]) say(pick(SAY[scene]));
+  }, [scene]);
 
   const jump = () => {
     hop.setValue(0);
@@ -272,7 +377,13 @@ export default function Cat({ kind, stage, mood, size = 200, name, message }) {
     },
   })).current;
 
+  const tail = Math.sin(time / 0.45) * 9;
   const shownMood = purring ? 'happy' : mood;
+  // En promenade : il va et vient, et se retourne dans le sens de la marche.
+  const walkX = scene === 'walk' ? Math.sin(time * 0.6) * size * 0.3 : 0;
+  const face = scene === 'walk' && Math.cos(time * 0.6) > 0 ? -1 : 1;
+  const bob = scene === 'walk' ? -Math.abs(Math.sin(time * 7)) * 3 : 0;
+  const hint = purring ? 'Ronron…' : scene === 'work' ? 'On bosse ensemble' : scene ? 'C’est la pause' : 'Touche-le ou caresse-le avec le doigt';
   return (
     <View style={{ width: size, alignItems: 'center' }}>
       <Animated.View pointerEvents="none" style={{
@@ -286,17 +397,19 @@ export default function Cat({ kind, stage, mood, size = 200, name, message }) {
       </Animated.View>
       <View {...pan.panHandlers} accessibilityRole="button" accessibilityLabel={'Caresser ' + (name || 'le chat')}
         style={{ paddingTop: 40, cursor: 'grab', userSelect: 'none' }}>
+        <View style={{ transform: [{ translateX: walkX }, { translateY: bob }, { scaleX: face }] }}>
         <Animated.View style={{
           transform: [
             { translateY: Animated.add(breathe.interpolate({ inputRange: [0, 1], outputRange: [0, -3] }), hop.interpolate({ inputRange: [0, 1], outputRange: [0, -22] })) },
             { scaleY: breathe.interpolate({ inputRange: [0, 1], outputRange: [1, 1.015] }) },
           ],
         }}>
-          <CatDrawing kind={kind} stage={stage} mood={shownMood} size={size} tail={purring ? tail * 2 : tail} blink={blink && !purring} />
+          <CatDrawing kind={kind} stage={stage} mood={shownMood} size={size} tail={purring || scene === 'walk' ? tail * 2 : tail} blink={blink && !purring} scene={scene} t={time} />
         </Animated.View>
+        </View>
         {hearts.map((h) => <FloatingHeart key={h.id} x={h.x} y={40 + size * 0.42} onDone={() => setHearts((a) => a.filter((z) => z.id !== h.id))} />)}
       </View>
-      <Text style={{ color: '#8A8998', fontSize: 12, marginTop: 2, opacity: purring ? 1 : 0.8 }}>{purring ? 'Ronron…' : 'Touche-le ou caresse-le avec le doigt'}</Text>
+      <Text style={{ color: '#8A8998', fontSize: 12, marginTop: 2, opacity: purring ? 1 : 0.8 }}>{hint}</Text>
     </View>
   );
 }

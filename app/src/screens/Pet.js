@@ -6,6 +6,7 @@ import { C } from '../theme';
 import { nh } from '../stats';
 import { Btn, Card, Field, Grid, H, Mu, Row } from '../components/ui';
 import Cat, { Bowl, CatDrawing } from '../pet/Cat';
+import { PomodoroCard, BREAK_TEXT, clock, remaining, usePomodoro } from '../pet/Pomodoro';
 import { adopt, feed, KINDS, moodOf, pantry, STAGES, STEP, stageOf, XP } from '../pet/rules';
 
 export default function Pet(p) {
@@ -59,6 +60,11 @@ function Home({ S, update, T, wide }) {
   const todayHabits = nh(S, T) % 4;
   const [bubble, setBubble] = useState(null);
   const [reset, setReset] = useState(false);
+  const timer = usePomodoro(S, update, T, (next) => {
+    setBubble({ id: Date.now(), text: next === 'break' ? 'Bien joué ! On fait une pause.' : 'Pause finie. On s’y remet ?' });
+  });
+  const pomo = timer.p;
+  const scene = pomo.ph === 'work' ? 'work' : pomo.ph === 'break' ? pomo.scene : null;
 
   const give = (type) => {
     const before = stageOf(pet.xp || 0);
@@ -72,6 +78,7 @@ function Home({ S, update, T, wide }) {
     ok: pet.name + ' va bien. Donne-' + (pet.kind === 'roux' ? 'lui' : 'lui') + ' à manger aujourd’hui.',
     hungry: pet.name + ' a faim… Coche tes habitudes pour gagner de la pâtée.',
   }[mood];
+  const shownText = scene === 'work' ? pet.name + ' travaille avec toi.' : scene ? pet.name + ' ' + BREAK_TEXT[scene] + '.' : moodText;
 
   return (
     <Grid wide={wide}>
@@ -80,12 +87,14 @@ function Home({ S, update, T, wide }) {
           <Row style={{ alignSelf: 'stretch', justifyContent: 'space-between' }}>
             <Text style={{ color: C.acc, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>{STAGES[st].toUpperCase()}</Text>
             <View style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.6)' }}>
-              <Text style={{ color: C.tx, fontSize: 12, fontWeight: '600' }}>{mood === 'happy' ? 'Content' : mood === 'ok' ? 'Tranquille' : 'A faim'}</Text>
+              <Text style={{ color: C.tx, fontSize: 12, fontWeight: '600', fontVariant: ['tabular-nums'] }}>
+                {scene ? (scene === 'work' ? 'Au travail' : 'Pause') + ' · ' + clock(remaining(pomo, timer.now)) : mood === 'happy' ? 'Content' : mood === 'ok' ? 'Tranquille' : 'A faim'}
+              </Text>
             </View>
           </Row>
-          <Cat kind={pet.kind} stage={st} mood={mood} size={230} name={pet.name} message={bubble} />
+          <Cat kind={pet.kind} stage={st} mood={mood} size={230} name={pet.name} message={bubble} scene={scene} />
           <Text style={{ color: C.tx, fontSize: 28, fontWeight: '700', letterSpacing: -0.5 }}>{pet.name}</Text>
-          <Mu style={{ textAlign: 'center', marginTop: 2 }}>{moodText}</Mu>
+          <Mu style={{ textAlign: 'center', marginTop: 2 }}>{shownText}</Mu>
           <View style={{ alignSelf: 'stretch', marginTop: 14 }}>
             <Row style={{ justifyContent: 'space-between' }}>
               <Text style={{ color: C.tx, fontWeight: '600', fontSize: 13 }}>{max ? 'Niveau maximum' : 'Vers « ' + STAGES[st + 1] + ' »'}</Text>
@@ -98,6 +107,8 @@ function Home({ S, update, T, wide }) {
           </View>
         </LinearGradient>
       </View>
+
+      <PomodoroCard S={S} update={update} T={T} timer={timer} name={pet.name} />
 
       <Card>
         <H>Garde-manger</H>
