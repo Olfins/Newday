@@ -7,6 +7,7 @@ import { has, visibleTodos } from '../stats';
 import { toggleOff } from '../store';
 import { parseICS, mergeICS } from '../ics';
 import { Btn, Card, Mu, Row } from '../components/ui';
+import { MonthCalendar } from '../components/pickers';
 import { DayPicker, GymCard, HabitGrid, MoodCard, NowCard, Schedule, TodoCard } from '../components/today';
 
 async function readPicked(asset) {
@@ -17,6 +18,7 @@ async function readPicked(asset) {
 
 export default function Today({ S, update, T, cd, setCd, wide, openAdd }) {
   const [msg, setMsg] = useState('');
+  const [cal, setCal] = useState(false);
   const k = cd;
   const tl = visibleTodos(S, T);
   const habitsDone = S.h.filter((h) => has(S, k, h.id)).length;
@@ -42,14 +44,22 @@ export default function Today({ S, update, T, cd, setCd, wide, openAdd }) {
   const summary = (
     <Row style={{ gap: 10, marginTop: -6 }}>
       <Text style={{ color: C.tx, fontSize: 14, fontWeight: '600' }}>Fait {habitsDone + todosDone} sur {total}</Text>
-      {k !== T ? <Btn label="Revenir à aujourd’hui" ghost onPress={() => setCd(T)} style={{ paddingVertical: 4 }} textStyle={{ fontSize: 12 }} /> : null}
+      <View style={{ flex: 1 }} />
+      {k !== T ? <Btn label="Aujourd’hui" ghost onPress={() => setCd(T)} style={{ paddingVertical: 4 }} textStyle={{ fontSize: 12 }} /> : null}
+      <Btn label={cal ? 'Fermer' : 'Choisir une date'} ghost onPress={() => setCal(!cal)} style={{ paddingVertical: 4 }} textStyle={{ fontSize: 12 }} />
     </Row>
   );
+  const calendar = cal ? (
+    <Card>
+      <MonthCalendar value={cd} T={T} onChange={(d) => { setCd(d); setCal(false); }} />
+    </Card>
+  ) : null;
 
   if (S.off[k]) {
     return (
       <>
         {summary}
+        {calendar}
         <DayPicker S={S} T={T} cd={cd} setCd={setCd} />
         <Card hero style={{ alignItems: 'center', paddingVertical: 40 }}>
           <Text style={{ color: C.pri, fontSize: 30, fontWeight: '300', letterSpacing: 6 }}>REPOS</Text>
@@ -87,6 +97,7 @@ export default function Today({ S, update, T, cd, setCd, wide, openAdd }) {
   return (
     <>
       {summary}
+      {calendar}
       <DayPicker S={S} T={T} cd={cd} setCd={setCd} />
       {wide ? (
         <View style={{ flexDirection: 'row', gap: 16, alignItems: 'flex-start' }}>

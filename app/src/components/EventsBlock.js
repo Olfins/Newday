@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { View, Text, Switch } from 'react-native';
 import { C, TYPES, typeColor } from '../theme';
-import { cleanTime, hm } from '../dates';
+import { hm } from '../dates';
+import { TimeField, nextHour, plusHour } from './pickers';
 import { addEvent, addExam, removeEvent } from '../store';
 import { AddRow, Btn, Field, Icon, Mu, Row } from './ui';
 
@@ -33,6 +34,8 @@ export default function EventsBlock({ S, update, k, T }) {
   const [t2, setT2] = useState('');
   const [weekly, setWeekly] = useState(false);
   const [err, setErr] = useState('');
+  const [open, setOpen] = useState(null);
+  const toggle = (w) => setOpen(open === w ? null : w);
 
   const nowHM = hm(new Date());
   const events = (S.ev[k] || []).map((e, i) => ({ e, i })).sort((a, b) => (a.e.s || '').localeCompare(b.e.s || ''));
@@ -44,11 +47,10 @@ export default function EventsBlock({ S, update, k, T }) {
     if (ty === 'ex') {
       update((s) => addExam(s, n, k));
     } else {
-      const a = t1 ? cleanTime(t1) : '', b = t2 ? cleanTime(t2) : '';
-      if (a === null || b === null) return setErr('Heure invalide. Écris par exemple 9:30 ou 14h.');
-      update((s) => addEvent(s, k, { t: n, s: a, e: b, ty }, weekly));
+      if (t1 && t2 && t2 <= t1) return setErr('La fin doit être après le début.');
+      update((s) => addEvent(s, k, { t: n, s: t1, e: t1 ? t2 : '', ty }, weekly));
     }
-    setName(''); setT1(''); setT2(''); setErr('');
+    setName(''); setT1(''); setT2(''); setErr(''); setOpen(null);
   };
 
   return (
@@ -76,10 +78,14 @@ export default function EventsBlock({ S, update, k, T }) {
         ))}
       </View>
       {ty !== 'ex' ? (
-        <Row>
-          <Field value={t1} onChangeText={setT1} placeholder="Début 9:00" style={{ flex: 1 }} />
-          <Field value={t2} onChangeText={setT2} placeholder="Fin (facultatif)" style={{ flex: 1 }} />
-        </Row>
+        <View style={{ marginTop: 6 }}>
+          <TimeField label="Début" value={t1} optional fallback={nextHour()}
+            onChange={(v) => { setT1(v); if (!v) setT2(''); }} open={open === 'start'} onToggle={() => toggle('start')} />
+          {t1 ? (
+            <TimeField label="Fin" value={t2} optional fallback={plusHour(t1)}
+              onChange={setT2} open={open === 'end'} onToggle={() => toggle('end')} />
+          ) : null}
+        </View>
       ) : null}
       <AddRow value={name} onChangeText={setName} onAdd={add} placeholder="Intitulé (cours, rendez-vous…)" />
       {err ? <Text style={{ color: C.red, marginTop: 6, fontSize: 13 }}>{err}</Text> : null}

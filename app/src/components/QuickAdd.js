@@ -1,8 +1,8 @@
 // Fenêtre qui s'ouvre avec le bouton + : ajouter une tâche, un événement, un examen ou une habitude.
 import React, { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, Switch, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { C, TYPES } from '../theme';
-import { cap, cleanTime, fmt } from '../dates';
+import { DateField, TimeField, nextHour, plusHour } from './pickers';
 import { addEvent, addExam, addHabit } from '../store';
 import { Btn, Field, Mu, Row } from './ui';
 
@@ -21,26 +21,27 @@ export default function QuickAdd({ visible, onClose, update, k, T, initial = 'to
   const [t2, setT2] = useState('');
   const [weekly, setWeekly] = useState(false);
   const [err, setErr] = useState('');
+  const [kd, setKd] = useState(k); // date choisie
+  const [open, setOpen] = useState(null); // sélecteur ouvert : 'date', 'start' ou 'end'
+  const toggle = (w) => setOpen(open === w ? null : w);
 
   useEffect(() => {
-    if (visible) { setKind(initial); setName(''); setT1(''); setT2(''); setWeekly(false); setErr(''); }
-  }, [visible, initial]);
+    if (visible) { setKind(initial); setName(''); setT1(''); setT2(''); setWeekly(false); setErr(''); setKd(k); setOpen(null); }
+  }, [visible, initial, k]);
 
   const save = () => {
     const n = name.trim();
     if (!n) return setErr('Écris un intitulé.');
     if (kind === 'todo') update((s) => s.t.push({ t: n, x: false, d: T }));
     else if (kind === 'habit') update((s) => addHabit(s, n));
-    else if (kind === 'exam') update((s) => addExam(s, n, k));
+    else if (kind === 'exam') update((s) => addExam(s, n, kd));
     else {
-      const a = t1 ? cleanTime(t1) : '', b = t2 ? cleanTime(t2) : '';
-      if (a === null || b === null) return setErr('Heure invalide. Écris par exemple 9:30 ou 14h.');
-      update((s) => addEvent(s, k, { t: n, s: a, e: b, ty }, weekly));
+      if (t1 && t2 && t2 <= t1) return setErr('La fin doit être après le début.');
+      update((s) => addEvent(s, kd, { t: n, s: t1, e: t1 ? t2 : '', ty }, weekly));
     }
     onClose();
   };
 
-  const dayLabel = cap(fmt(k, { weekday: 'long', day: 'numeric', month: 'long' }));
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
@@ -60,28 +61,37 @@ export default function QuickAdd({ visible, onClose, update, k, T, initial = 'to
               </Pressable>
             ))}
           </View>
-          {kind === 'event' || kind === 'exam' ? <Mu style={{ marginTop: 12 }}>Pour : {dayLabel}</Mu> : null}
-          {kind === 'event' ? (
-            <>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
-                {TYPES.filter((x) => x.id !== 'ex').map((x) => (
-                  <Btn key={x.id} label={x.label} active={ty === x.id} onPress={() => setTy(x.id)} />
-                ))}
-              </View>
-              <Row>
-                <Field value={t1} onChangeText={setT1} placeholder="Début 9:00" style={{ flex: 1 }} />
-                <Field value={t2} onChangeText={setT2} placeholder="Fin (facultatif)" style={{ flex: 1 }} />
-              </Row>
-            </>
-          ) : null}
+          <ScrollView style={{ maxHeight: 520 }} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
           <Field
             value={name}
             onChangeText={setName}
-            autoFocus
+            autoFocus={kind !== 'event'}
             onSubmitEditing={save}
             returnKeyType="done"
-            placeholder={{ todo: 'Ex. : Faire les courses', event: 'Ex. : Cours de droit', exam: 'Ex. : Droit civil', habit: 'Ex. : Méditation' }[kind]}
+            placeholder={{ todo: 'Ex. : Faire les courses', event: 'Intitulé (ex. : Cours de droit)', exam: 'Ex. : Droit civil', habit: 'Ex. : Méditation' }[kind]}
           />
+          {kind === 'event' ? (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+              {TYPES.filter((x) => x.id !== 'ex').map((x) => (
+                <Btn key={x.id} label={x.label} active={ty === x.id} onPress={() => setTy(x.id)} />
+              ))}
+            </View>
+          ) : null}
+          {kind === 'event' || kind === 'exam' ? (
+            <View style={{ marginTop: 8 }}>
+              <DateField label="Date" value={kd} onChange={setKd} open={open === 'date'} onToggle={() => toggle('date')} T={T} />
+              {kind === 'event' ? (
+                <>
+                  <TimeField label="Début" value={t1} optional fallback={nextHour()}
+                    onChange={(v) => { setT1(v); if (!v) setT2(''); }} open={open === 'start'} onToggle={() => toggle('start')} />
+                  {t1 ? (
+                    <TimeField label="Fin" value={t2} optional fallback={plusHour(t1)}
+                      onChange={setT2} open={open === 'end'} onToggle={() => toggle('end')} />
+                  ) : null}
+                </>
+              ) : null}
+            </View>
+          ) : null}
           {kind === 'event' ? (
             <Row style={{ marginTop: 12 }}>
               <Switch value={weekly} onValueChange={setWeekly} trackColor={{ false: C.line, true: C.accLine }}
@@ -90,6 +100,7 @@ export default function QuickAdd({ visible, onClose, update, k, T, initial = 'to
             </Row>
           ) : null}
           {err ? <Text style={{ color: C.red, marginTop: 8, fontSize: 13 }}>{err}</Text> : null}
+          </ScrollView>
           <Row style={{ marginTop: 18 }}>
             <Btn label="Annuler" ghost onPress={onClose} style={{ flex: 1 }} />
             <Btn label="Ajouter" active onPress={save} style={{ flex: 1 }} />

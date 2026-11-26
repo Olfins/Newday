@@ -36,6 +36,7 @@ npx expo start --web
 - `src/theme.js` : les couleurs (design clair, fond lavande pâle, cartes blanches).
 - `src/components/today.js` : les cartes de l'écran Aujourd'hui (habitudes, salle, humeur, tâches, programme).
 - `src/components/QuickAdd.js` : la fenêtre du bouton +.
+- `src/components/pickers.js` : la roue des heures et le calendrier façon iPhone.
 
 ## Reprendre tes données de l'ancienne version
 
