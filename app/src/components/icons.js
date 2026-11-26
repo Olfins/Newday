@@ -1,6 +1,6 @@
 // Petites icônes dessinées en traits (pas d'images).
 import React from 'react';
-import Svg, { Path, Rect, Circle, Line } from 'react-native-svg';
+import Svg, { Path, Rect, Circle, Line, Ellipse } from 'react-native-svg';
 import { C } from '../theme';
 
 const base = (size, color) => ({
@@ -45,25 +45,47 @@ export const DumbbellIcon = ({ size = 18, color = C.pri }) => (
   </Svg>
 );
 export const MoodIcon = ({ size = 18, color = C.pri }) => (
-  <Svg {...base(size, color)}><Circle cx="12" cy="12" r="9" /><Path d="M8.5 14.5q3.5 3 7 0" /><Circle cx="9" cy="10" r=".6" /><Circle cx="15" cy="10" r=".6" /></Svg>
+  <Svg {...base(size, color)}><Path d="M4.3 11.4L4.7 3.8L9.2 7.3Q12 6.5 14.8 7.3L19.3 3.8L19.7 11.4Q20.9 19.6 12 20.6Q3.1 19.6 4.3 11.4Z" /><Path d="M9.8 15.6q1.1 1.2 2.2 0q1.1 1.2 2.2 0" /><Circle cx="9" cy="12.4" r=".7" /><Circle cx="15" cy="12.4" r=".7" /></Svg>
 );
 
-// Visage d'humeur de 1 (mal) à 5 (super), dessiné au trait.
-const MOUTHS = {
-  1: 'M8 16.5q4-3.5 8 0',
-  2: 'M8.5 16q3.5-1.6 7 0',
-  3: 'M8.5 15.5h7',
-  4: 'M8.5 14.5q3.5 2 7 0',
-  5: 'M7.5 13.5q4.5 5 9 0',
-};
+// Humeur de 1 (mal) à 5 (super) : une tête de chat dessinée au trait.
+const HEAD = 'M4.3 11.4L4.7 3.8L9.2 7.3Q12 6.5 14.8 7.3L19.3 3.8L19.7 11.4Q20.9 19.6 12 20.6Q3.1 19.6 4.3 11.4Z';
 export function Face({ level, size = 28, on }) {
-  const stroke = on ? C.onPri : C.mu;
+  const f = on ? C.onPri : C.mu;
+  const line = { stroke: f, strokeWidth: 1.5, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' };
+  const dots = (r = 1.15) => (<><Circle cx="9" cy="12.6" r={r} fill={f} /><Circle cx="15" cy="12.6" r={r} fill={f} /></>);
+  const parts = {
+    1: (<>
+      {dots(1)}
+      <Path d="M7.4 11.1L10.1 10.1M16.6 11.1L13.9 10.1" {...line} />
+      <Path d="M10.1 17.7q1.9-1.7 3.8 0" {...line} />
+      <Path d="M8.6 14.4q-0.9 1.4 0 2q0.9-0.6 0-2z" fill="#8DC3EE" />
+    </>),
+    2: (<>
+      <Path d="M7.8 12.8h2.4M13.8 12.8h2.4" {...line} />
+      <Path d="M10 17q1-0.8 2 0q1 0.8 2 0" {...line} />
+    </>),
+    3: (<>
+      {dots()}
+      <Path d="M10.4 16.8h3.2" {...line} />
+    </>),
+    4: (<>
+      {dots()}
+      <Path d="M9.8 15.9q1.1 1.3 2.2 0q1.1 1.3 2.2 0" {...line} />
+    </>),
+    5: (<>
+      <Path d="M7.7 13.2q1.3-1.8 2.6 0M13.7 13.2q1.3-1.8 2.6 0" {...line} />
+      <Path d="M9.9 15.7q2.1 3.1 4.2 0z" fill={f} />
+      <Ellipse cx="7" cy="15.4" rx="1.3" ry="0.75" fill="#E8738A" opacity="0.7" />
+      <Ellipse cx="17" cy="15.4" rx="1.3" ry="0.75" fill="#E8738A" opacity="0.7" />
+    </>),
+  };
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="12" r="10.5" fill={on ? C.pri : 'transparent'} stroke={on ? C.pri : C.line} strokeWidth="1.4" />
-      <Circle cx="8.8" cy="9.6" r="1.1" fill={stroke} />
-      <Circle cx="15.2" cy="9.6" r="1.1" fill={stroke} />
-      <Path d={MOUTHS[level]} stroke={stroke} strokeWidth="1.7" strokeLinecap="round" fill="none" />
+      <Path d={HEAD} fill={on ? C.pri : C.card} stroke={on ? C.pri : '#C9C7D6'} strokeWidth="1.3" strokeLinejoin="round" />
+      <Path d="M11.2 14.5h1.6L12 15.3z" fill={on ? '#E9A3B4' : f} stroke={on ? '#E9A3B4' : f} strokeWidth="0.6" strokeLinejoin="round" />
+      <Path d="M1.8 14.1l3.2 0.3M2.1 16.3l3-0.7M22.2 14.1l-3.2 0.3M21.9 16.3l-3-0.7" stroke={on ? C.pri : '#C9C7D6'} strokeWidth="0.9" strokeLinecap="round" />
+      {parts[level]}
     </Svg>
   );
 }
