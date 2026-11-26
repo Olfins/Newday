@@ -126,13 +126,7 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
         <Path d={`M${cx + bw / 2 - 6} ${base - 10} C${cx + bw / 2 + 30} ${base - 4} ${cx + bw / 2 + 36} ${base - 50} ${cx + bw / 2 + 18} ${base - 60}`}
           stroke={P.fur} strokeWidth="10" strokeLinecap="round" fill="none" />
         {L.pat === 'chaussettes' && L.fur !== 'blanc' ? <Circle cx={cx + bw / 2 + 18} cy={base - 60} r="5" fill="#FFFFFF" /> : null}
-        {L.pat === 'tigre' ? (
-          <G stroke={P.furD} strokeWidth="3" strokeLinecap="round">
-            <Line x1={cx + bw / 2 + 22} y1={base - 14} x2={cx + bw / 2 + 18} y2={base - 4} />
-            <Line x1={cx + bw / 2 + 32} y1={base - 30} x2={cx + bw / 2 + 24} y2={base - 26} />
-            <Line x1={cx + bw / 2 + 30} y1={base - 46} x2={cx + bw / 2 + 22} y2={base - 46} />
-          </G>
-        ) : null}
+        {L.pat === 'tigre' ? <TailStripes x0={cx + bw / 2 - 6} y0={base - 10} color={P.furD} /> : null}
       </G>
       {/* Mallette du PDG */}
       {stage === 3 ? (
@@ -191,8 +185,8 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
           <Line x1={cx - 9} y1={hy - hr * 0.84} x2={cx - 7} y2={hy - hr * 0.6} />
           <Line x1={cx} y1={hy - hr * 0.88} x2={cx} y2={hy - hr * 0.62} />
           <Line x1={cx + 9} y1={hy - hr * 0.84} x2={cx + 7} y2={hy - hr * 0.6} />
-          <Line x1={cx - hr * 0.98} y1={hy + hr * 0.02} x2={cx - hr * 0.8} y2={hy + hr * 0.06} />
-          <Line x1={cx + hr * 0.98} y1={hy + hr * 0.02} x2={cx + hr * 0.8} y2={hy + hr * 0.06} />
+          <Line x1={cx - hr * 0.9} y1={hy + hr * 0.02} x2={cx - hr * 0.74} y2={hy + hr * 0.06} />
+          <Line x1={cx + hr * 0.9} y1={hy + hr * 0.02} x2={cx + hr * 0.74} y2={hy + hr * 0.06} />
         </G>
       ) : null}
       {hair()}
@@ -221,6 +215,27 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
       {scene === 'work' ? <Desk P={P} cx={cx} bw={bw} top={top} t={t} /> : null}
       {holds ? <Hold P={P} scene={scene} cx={cx} bw={bw} top={top} bh={bh} hr={hr} my={my} sip={sip} t={t} /> : null}
     </Svg>
+  );
+}
+
+// Rayures du chat tigré, posées en travers de la queue (même courbe que la queue).
+function TailStripes({ x0, y0, color }) {
+  const P = [[x0, y0], [x0 + 36, y0 + 6], [x0 + 42, y0 - 40], [x0 + 24, y0 - 50]];
+  const at = (t) => {
+    const u = 1 - t;
+    const pt = [0, 1].map((i) => u * u * u * P[0][i] + 3 * u * u * t * P[1][i] + 3 * u * t * t * P[2][i] + t * t * t * P[3][i]);
+    const d = [0, 1].map((i) => 3 * u * u * (P[1][i] - P[0][i]) + 6 * u * t * (P[2][i] - P[1][i]) + 3 * t * t * (P[3][i] - P[2][i]));
+    const n = Math.hypot(d[0], d[1]) || 1;
+    return { pt, nx: -d[1] / n, ny: d[0] / n };
+  };
+  return (
+    <G stroke={color} strokeWidth="3" strokeLinecap="round">
+      {[0.3, 0.55, 0.8].map((t) => {
+        const { pt, nx, ny } = at(t);
+        const h = 3.2;
+        return <Line key={t} x1={pt[0] - nx * h} y1={pt[1] - ny * h} x2={pt[0] + nx * h} y2={pt[1] + ny * h} />;
+      })}
+    </G>
   );
 }
 
