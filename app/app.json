@@ -11,7 +11,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#F3F2F9",
+        "backgroundColor": "#F2EBDC",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -20,9 +20,9 @@
     "web": {
       "favicon": "./assets/favicon.png",
       "name": "Newday",
-      "backgroundColor": "#F3F2F9",
-      "themeColor": "#F3F2F9"
+      "backgroundColor": "#F2EBDC",
+      "themeColor": "#F2EBDC"
     },
-    "backgroundColor": "#F3F2F9"
+    "backgroundColor": "#F2EBDC"
   }
 }
