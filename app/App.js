@@ -5,7 +5,7 @@ import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-na
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C } from './src/theme';
-import { cap, fmt, today, weekNumber } from './src/dates';
+import { cap, fmt, today } from './src/dates';
 import { useStore } from './src/store';
 import Today from './src/screens/Today';
 import Week from './src/screens/Week';
@@ -50,7 +50,6 @@ function Main() {
     if (id === 'day') setCd(T);
   };
   const title = tab === 'day' && cd !== T ? cap(fmt(cd, { weekday: 'long' })) : current.label;
-  const shown = tab === 'day' ? cd : T;
   const addDay = tab === 'day' || tab === 'cal' ? cd : T;
 
   return (
@@ -77,9 +76,6 @@ function Main() {
             <Text style={{ color: C.tx, fontSize: 32, fontWeight: '700', letterSpacing: -0.8 }}>{title}</Text>
           </View>
         </View>
-        <Text style={{ color: C.mu, fontSize: 13, marginTop: -10 }}>
-          {cap(fmt(shown, { weekday: 'long', day: 'numeric', month: 'long' }))} · semaine {weekNumber(shown)}
-        </Text>
         <Screen S={S} update={update} replace={replace} T={T} cd={cd} setCd={setCd} wide={wide} openAdd={setAdd} openGym={() => setGym(true)} />
       </ScrollView>
 

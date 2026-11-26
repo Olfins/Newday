@@ -42,7 +42,7 @@ export default function Today({ S, update, T, cd, setCd, wide, openAdd, openGym 
   };
 
   const summary = (
-    <Row style={{ gap: 10, marginTop: -6 }}>
+    <Row style={{ gap: 10 }}>
       <Text style={{ color: C.tx, fontSize: 14, fontWeight: '600' }}>Fait {habitsDone + todosDone} sur {total}</Text>
       <View style={{ flex: 1 }} />
       {k !== T ? <Btn label="Aujourd’hui" ghost onPress={() => setCd(T)} style={{ paddingVertical: 4 }} textStyle={{ fontSize: 12 }} /> : null}
