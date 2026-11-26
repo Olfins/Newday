@@ -53,6 +53,35 @@ export function DayPicker({ S, T, cd, setCd }) {
 }
 
 // ---------- Grille des habitudes de la semaine ----------
+// Habitudes d'un seul jour (l'écran Jour) : une ligne par habitude, un rond à cocher.
+export function DayHabits({ S, update, k, dot = 30 }) {
+  const done = S.h.filter((h) => has(S, k, h.id)).length;
+  return (
+    <Card>
+      <Row style={{ justifyContent: 'space-between' }}>
+        <H style={{ marginBottom: 0 }}>Habitudes</H>
+        <Text style={{ color: C.mu, fontSize: 13 }}>{done} / {S.h.length}</Text>
+      </Row>
+      {S.h.map((h) => {
+        const on = has(S, k, h.id);
+        return (
+          <Pressable key={h.id} onPress={() => update((s) => toggleHabit(s, k, h.id))}
+            accessibilityRole="checkbox" accessibilityState={{ checked: on }} accessibilityLabel={h.n}
+            style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: C.line }}>
+            <Text style={{ flex: 1, color: on ? C.mu : C.tx, fontSize: 15, textDecorationLine: on ? 'line-through' : 'none' }} numberOfLines={1}>{h.n}</Text>
+            <View style={{
+              width: dot, height: dot, borderRadius: dot / 2, alignItems: 'center', justifyContent: 'center',
+              backgroundColor: on ? C.pri : 'transparent', borderWidth: 1.4, borderColor: on ? C.pri : C.accLine,
+            }}>
+              {on ? <CheckIcon size={dot * 0.6} color={C.onPri} width={3} /> : null}
+            </View>
+          </Pressable>
+        );
+      })}
+    </Card>
+  );
+}
+
 export function HabitGrid({ S, update, T, k, dot = 24 }) {
   const days = weekOf(mondayOf(k));
   const range = toDate(days[0]).getDate() + '–' + fmt(days[6], { day: 'numeric', month: 'short' });

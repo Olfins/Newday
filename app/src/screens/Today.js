@@ -1,4 +1,5 @@
-// Écran "Aujourd'hui" : le jour choisi avec ses habitudes, la salle, l'humeur, les tâches et le programme.
+// Écran "Jour" : la journée d'aujourd'hui avec ses habitudes, la salle, l'humeur, les tâches et le programme.
+// Les autres jours se corrigent dans Semaine ou Calendrier.
 import React, { useState } from 'react';
 import { Platform, Text, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
@@ -7,8 +8,7 @@ import { has, visibleTodos } from '../stats';
 import { toggleOff } from '../store';
 import { parseICS, mergeICS } from '../ics';
 import { Btn, Card, Mu, Row } from '../components/ui';
-import { MonthCalendar } from '../components/pickers';
-import { DayPicker, GymCard, HabitGrid, MoodCard, NowCard, Schedule, TodoCard } from '../components/today';
+import { DayHabits, GymCard, MoodCard, NowCard, Schedule, TodoCard } from '../components/today';
 
 async function readPicked(asset) {
   if (asset.file && asset.file.text) return asset.file.text();
@@ -16,14 +16,13 @@ async function readPicked(asset) {
   return r.text();
 }
 
-export default function Today({ S, update, T, cd, setCd, wide, openAdd, openGym }) {
+export default function Today({ S, update, T, wide, openAdd, openGym }) {
   const [msg, setMsg] = useState('');
-  const [cal, setCal] = useState(false);
-  const k = cd;
+  const k = T;
   const tl = visibleTodos(S, T);
   const habitsDone = S.h.filter((h) => has(S, k, h.id)).length;
-  const todosDone = k === T ? tl.filter((o) => o.t.x).length : 0;
-  const total = S.h.length + (k === T ? tl.length : 0);
+  const todosDone = tl.filter((o) => o.t.x).length;
+  const total = S.h.length + tl.length;
 
   const importICS = async () => {
     try {
@@ -44,23 +43,13 @@ export default function Today({ S, update, T, cd, setCd, wide, openAdd, openGym 
   const summary = (
     <Row style={{ gap: 10 }}>
       <Text style={{ color: C.tx, fontSize: 14, fontWeight: '600' }}>Fait {habitsDone + todosDone} sur {total}</Text>
-      <View style={{ flex: 1 }} />
-      {k !== T ? <Btn label="Aujourd’hui" ghost onPress={() => setCd(T)} style={{ paddingVertical: 4 }} textStyle={{ fontSize: 12 }} /> : null}
-      <Btn label={cal ? 'Fermer' : 'Choisir une date'} ghost onPress={() => setCal(!cal)} style={{ paddingVertical: 4 }} textStyle={{ fontSize: 12 }} />
     </Row>
   );
-  const calendar = cal ? (
-    <Card>
-      <MonthCalendar value={cd} T={T} onChange={(d) => { setCd(d); setCal(false); }} />
-    </Card>
-  ) : null;
 
   if (S.off[k]) {
     return (
       <>
         {summary}
-        {calendar}
-        <DayPicker S={S} T={T} cd={cd} setCd={setCd} />
         <Card hero style={{ alignItems: 'center', paddingVertical: 40 }}>
           <Text style={{ fontFamily: C.serif, color: C.pri, fontSize: 30, fontWeight: '300', letterSpacing: 6 }}>REPOS</Text>
           <Mu style={{ marginTop: 8, textAlign: 'center' }}>Jour off : il ne compte pas dans tes séries.</Mu>
@@ -73,12 +62,12 @@ export default function Today({ S, update, T, cd, setCd, wide, openAdd, openGym 
   const left = (
     <View style={{ gap: 14 }}>
       <NowCard S={S} T={T} k={k} onAdd={() => openAdd('event')} />
-      <HabitGrid S={S} update={update} T={T} k={k} />
+      <DayHabits S={S} update={update} k={k} />
       <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
         <GymCard S={S} update={update} T={T} k={k} onOpen={openGym} />
         <MoodCard S={S} update={update} T={T} k={k} />
       </View>
-      {k === T ? <TodoCard S={S} update={update} T={T} /> : null}
+      <TodoCard S={S} update={update} T={T} />
     </View>
   );
   const right = (
@@ -97,8 +86,6 @@ export default function Today({ S, update, T, cd, setCd, wide, openAdd, openGym 
   return (
     <>
       {summary}
-      {calendar}
-      <DayPicker S={S} T={T} cd={cd} setCd={setCd} />
       {wide ? (
         <View style={{ flexDirection: 'row', gap: 16, alignItems: 'flex-start' }}>
           <View style={{ flex: 1 }}>{left}</View>

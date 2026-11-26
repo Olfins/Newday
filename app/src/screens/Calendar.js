@@ -1,4 +1,4 @@
-// Écran "Calendrier" : vue du mois, puis le détail du jour choisi.
+// Écran "Calendrier" : vue du mois, le détail du jour choisi, puis les progrès et l'analyse générale.
 import React, { useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { C, accA, typeColor } from '../theme';
@@ -6,6 +6,7 @@ import { cap, LETTERS, toDate } from '../dates';
 import { pc } from '../stats';
 import { Btn, Card, Grid, Icon, Mu, Row, H } from '../components/ui';
 import DayPanel from '../components/DayPanel';
+import Progress from './Progress';
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -27,6 +28,7 @@ export default function Calendar(p) {
   for (let d = 1; d <= n; d++) cells.push(cm + '-' + pad(d));
 
   return (
+    <>
     <Grid wide={wide}>
       <Card>
         <Row style={{ justifyContent: 'space-between' }}>
@@ -51,6 +53,10 @@ export default function Calendar(p) {
       </Card>
       <DayPanel {...p} k={cd} />
     </Grid>
+    {/* Progrès et analyse générale, sous le calendrier. */}
+    <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 24, fontWeight: '700', marginTop: 10 }}>Progrès et analyse</Text>
+    <Progress {...p} />
+    </>
   );
 }
 

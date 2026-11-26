@@ -1,26 +1,25 @@
 // Point d'entrée de l'app : charge les données, affiche l'en-tête, l'écran choisi
-// et la barre d'onglets flottante avec le bouton +.
+// et la barre d'onglets flottante (4 onglets).
 import React, { useState } from 'react';
 import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C } from './src/theme';
-import { cap, fmt, today } from './src/dates';
+import { today } from './src/dates';
 import { useStore } from './src/store';
 import Today from './src/screens/Today';
 import Week from './src/screens/Week';
 import Calendar from './src/screens/Calendar';
-import Progress from './src/screens/Progress';
 import Pet from './src/screens/Pet';
 import QuickAdd from './src/components/QuickAdd';
 import GymModule from './src/gym/GymModule';
-import { CalIcon, ChartIcon, HomeIcon, PawIcon, PlusIcon, WeekIcon } from './src/components/icons';
+import { CalIcon, HomeIcon, PawIcon, PlusIcon, WeekIcon } from './src/components/icons';
 
+// Quatre onglets : Jour (aujourd'hui), Semaine, Calendrier (avec les progrès), Pet.
 const TABS = [
-  { id: 'day', label: 'Aujourd’hui', screen: Today, Icon: HomeIcon },
+  { id: 'day', label: 'Jour', title: 'Aujourd’hui', screen: Today, Icon: HomeIcon },
   { id: 'week', label: 'Semaine', screen: Week, Icon: WeekIcon },
   { id: 'cal', label: 'Calendrier', screen: Calendar, Icon: CalIcon },
-  { id: 'prog', label: 'Progrès', screen: Progress, Icon: ChartIcon },
   { id: 'pet', label: 'Pet', screen: Pet, Icon: PawIcon },
 ];
 
@@ -47,12 +46,10 @@ function Main() {
 
   const current = TABS.find((t) => t.id === tab);
   const Screen = current.screen;
-  const pick = (id) => {
-    setTab(id);
-    if (id === 'day') setCd(T);
-  };
-  const title = tab === 'day' && cd !== T ? cap(fmt(cd, { weekday: 'long' })) : current.label;
-  const addDay = tab === 'day' || tab === 'cal' ? cd : T;
+  const pick = (id) => setTab(id);
+  const title = current.title || current.label;
+  const addDay = tab === 'cal' ? cd : T;
+  const addKind = tab === 'week' || tab === 'pet' ? 'habit' : tab === 'cal' ? 'event' : 'todo';
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
@@ -77,6 +74,11 @@ function Main() {
           <View style={{ flex: 1 }}>
             <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 32, fontWeight: '700', letterSpacing: -0.3 }}>{title}</Text>
           </View>
+          {/* Ajouter (tâche, événement, examen, habitude) : en haut, pas dans le menu. */}
+          <Pressable onPress={() => setAdd(addKind)} accessibilityRole="button" accessibilityLabel="Ajouter" hitSlop={6}
+            style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: C.pri, opacity: pressed ? 0.8 : 1 })}>
+            <PlusIcon size={20} color={C.onPri} />
+          </Pressable>
         </View>
         <Screen S={S} update={update} replace={replace} T={T} cd={cd} setCd={setCd} wide={wide} openAdd={setAdd} openGym={() => setGym(true)} />
       </ScrollView>
@@ -111,18 +113,6 @@ function Main() {
               );
             })}
           </View>
-          <Pressable
-            onPress={() => setAdd(tab === 'week' || tab === 'prog' || tab === 'pet' ? 'habit' : 'todo')}
-            accessibilityRole="button"
-            accessibilityLabel="Ajouter"
-            style={({ pressed }) => ({
-              width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center',
-              backgroundColor: C.bar, opacity: pressed ? 0.8 : 1,
-              shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 16, shadowOffset: { width: 0, height: 6 },
-            })}
-          >
-            <PlusIcon size={24} color="#FFFFFF" />
-          </Pressable>
         </View>
       </View>
 
