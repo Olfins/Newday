@@ -103,30 +103,35 @@ export function HabitGrid({ S, update, T, k, dot = 24 }) {
 }
 
 // ---------- Salle : check-in / check-out ----------
-export function GymCard({ S, update, T, k, style }) {
+export function GymCard({ S, update, T, k, style, onOpen }) {
   const g = S.gym[k];
   const fut = k > T;
-  const now = hm(new Date());
-  const state = !g ? 'out' : g.o ? 'done' : 'in';
+  const running = S.run && S.run.k === k;
+  const w = [...S.ws].reverse().find((x) => x.d === k);
+  const state = running ? 'run' : !g ? 'out' : g.o ? 'done' : 'in';
+  const on = state !== 'out';
+  // Aujourd'hui : la carte ouvre le module Salle. Autres jours : simple correction manuelle.
   const press = () => {
-    if (state === 'out') update((s) => gymCheckIn(s, k, k === T ? now : ''));
-    else if (state === 'in') update((s) => gymCheckOut(s, k, k === T ? now : ''));
+    if (k === T) return onOpen();
+    if (state === 'out') update((s) => { gymCheckIn(s, k, ''); gymCheckOut(s, k, ''); });
     else update((s) => gymReset(s, k));
   };
-  const on = state !== 'out';
-  const info = state === 'out' ? (fut ? 'Pas encore' : 'Pas encore venu')
+  const info = state === 'run' ? 'En cours depuis ' + S.run.start
+    : state === 'out' ? (fut ? 'Pas encore' : k === T ? 'Choisis ta séance' : 'Pas de séance')
+    : w ? w.name + ' · ' + w.mins + ' min'
     : state === 'in' ? (g.i ? 'Depuis ' + g.i : 'Séance en cours')
-    : (g.i && g.o ? g.i + '–' + g.o + (duration(g.i, g.o) ? ' · ' + duration(g.i, g.o) : '') : 'Séance validée');
+    : (g.i && g.o && duration(g.i, g.o) ? g.i + '–' + g.o + ' · ' + duration(g.i, g.o) : 'Séance validée');
+  const label = k !== T ? (state === 'out' ? 'Valider' : 'Annuler') : state === 'run' ? 'Reprendre' : state === 'out' ? 'Commencer' : 'Ouvrir';
   return (
     <Card style={[{ flex: 1, overflow: 'hidden' }, style]}>
       <LinearGradient colors={['rgba(108,95,212,0)', on ? 'rgba(108,95,212,0.20)' : 'rgba(108,95,212,0.07)']}
         style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '70%' }} pointerEvents="none" />
-      <Row style={{ gap: 6 }}><DumbbellIcon /><H style={{ marginBottom: 0 }}>Salle</H></Row>
+      <Row style={{ gap: 6 }}><DumbbellIcon color={C.acc} /><H style={{ marginBottom: 0 }}>Salle</H></Row>
       <Pressable
         onPress={press}
         disabled={fut}
         accessibilityRole="button"
-        accessibilityLabel={state === 'out' ? 'Check-in à la salle' : state === 'in' ? 'Check-out de la salle' : 'Annuler la séance'}
+        accessibilityLabel={k === T ? 'Ouvrir la salle' : state === 'out' ? 'Valider la salle' : 'Annuler la séance'}
         style={{
           width: 64, height: 64, borderRadius: 32, alignSelf: 'center', marginTop: 12,
           alignItems: 'center', justifyContent: 'center', borderWidth: 2,
@@ -134,14 +139,16 @@ export function GymCard({ S, update, T, k, style }) {
           opacity: fut ? 0.35 : 1,
         }}
       >
-        {on ? <CheckIcon size={30} color={state === 'done' ? C.onPri : C.pri} width={2.6} /> : <DumbbellIcon size={26} />}
+        {state === 'done' ? <CheckIcon size={30} color={C.onPri} width={2.6} />
+          : state === 'run' || state === 'in' ? <Text style={{ color: C.pri, fontWeight: '700', fontSize: 12 }}>EN COURS</Text>
+          : <DumbbellIcon size={26} color={C.acc} />}
       </Pressable>
       <Text style={{ color: C.mu, fontSize: 12, textAlign: 'center', marginTop: 8 }} numberOfLines={1}>{info}</Text>
       <Btn
-        label={state === 'out' ? 'Check-in' : state === 'in' ? 'Check-out' : 'Annuler'}
+        label={label}
         onPress={press}
         disabled={fut}
-        active={state === 'in'}
+        active={state === 'run'}
         style={{ alignSelf: 'center', marginTop: 8, paddingVertical: 6 }}
         textStyle={{ fontSize: 12 }}
       />
@@ -157,7 +164,7 @@ export function MoodCard({ S, update, T, k, style }) {
     <Card style={[{ flex: 1, overflow: 'hidden' }, style]}>
       <LinearGradient colors={['rgba(240,138,60,0)', m ? 'rgba(240,138,60,0.22)' : 'rgba(240,138,60,0.08)']}
         style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '70%' }} pointerEvents="none" />
-      <Row style={{ gap: 6 }}><MoodIcon /><H style={{ marginBottom: 0 }}>Humeur</H></Row>
+      <Row style={{ gap: 6 }}><MoodIcon color={C.acc} /><H style={{ marginBottom: 0 }}>Humeur</H></Row>
       <View style={{ flex: 1, justifyContent: 'center' }}>
         <MoodPicker value={m} disabled={fut} size={26} onPick={(n) => update((s) => setMood(s, k, n))} />
       </View>
@@ -287,7 +294,7 @@ function Hero({ label, title, sub, pct, action }) {
   );
 }
 
-// Programme de la journée, façon agenda : heures à gauche, ligne dorée "maintenant".
+// Programme de la journée, façon agenda : heures à gauche, ligne colorée "maintenant".
 export function Schedule({ S, update, T, k, onAdd }) {
   const { ev, ex } = dayItems(S, k);
   const now = hm(new Date());

@@ -21,6 +21,7 @@ const starter = () => ({
   off: {}, // jours off
   x: [], // examens
   gym: {}, // jour -> heures d'arrivée et de départ à la salle
+  ws: [], // séances de salle terminées
 });
 
 // Complète les morceaux manquants et retire les emojis des habitudes.
@@ -34,6 +35,7 @@ export function normalize(o) {
   s.off = s.off || {};
   s.x = Array.isArray(s.x) ? s.x : [];
   s.gym = s.gym || {};
+  s.ws = Array.isArray(s.ws) ? s.ws : [];
   s.h.forEach((h) => (h.e = ''));
   delete s.theme;
   return s;
@@ -149,4 +151,32 @@ export function gymCheckOut(s, k, time) {
 export function gymReset(s, k) {
   delete s.gym[k];
   if (s.d[k]) s.d[k] = s.d[k].filter((id) => id !== 'gym');
+}
+
+// ---- Séances de salle (module Salle) ----
+// s.run : la séance en cours ; s.ws : l'historique des séances terminées.
+export function startRun(s, k, level, session, time) {
+  // On garde la séance déjà validée ce jour-là, pour la remettre si celle-ci est annulée.
+  s.run = { k, l: level, s: session, start: time, ts: Date.now(), done: {}, sets: {}, kg: {}, prev: s.gym[k] || null };
+  if (!s.gym[k]) gymCheckIn(s, k, time);
+}
+
+// Termine la séance : enregistrée si au moins un exercice est coché, sinon annulée.
+export function finishRun(s, time, lv, se) {
+  const r = s.run;
+  if (!r) return false;
+  delete s.run;
+  const ex = se.exercises.map((x, i) => ({ n: x.name, done: !!r.done[i], sets: r.sets[i] || 0, kg: r.kg[i] || '' }));
+  const done = ex.filter((x) => x.done).length;
+  if (!done) {
+    if (!r.prev) gymReset(s, r.k);
+    return false;
+  }
+  s.ws = s.ws || [];
+  s.ws.push({ id: 'w' + Date.now(), d: r.k, start: r.start, end: time, mins: Math.max(1, Math.round((Date.now() - r.ts) / 60000)), level: lv.full, name: se.name, ex, done, total: ex.length });
+  // Heures de salle : de la première arrivée du jour à la fin de cette séance.
+  s.gym[r.k] = { i: (r.prev && r.prev.i) || r.start, o: time };
+  const d = s.d[r.k] || (s.d[r.k] = []);
+  if (s.h.some((h) => h.id === 'gym') && !d.includes('gym')) d.push('gym');
+  return true;
 }

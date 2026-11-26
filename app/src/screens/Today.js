@@ -16,7 +16,7 @@ async function readPicked(asset) {
   return r.text();
 }
 
-export default function Today({ S, update, T, cd, setCd, wide, openAdd }) {
+export default function Today({ S, update, T, cd, setCd, wide, openAdd, openGym }) {
   const [msg, setMsg] = useState('');
   const [cal, setCal] = useState(false);
   const k = cd;
@@ -75,7 +75,7 @@ export default function Today({ S, update, T, cd, setCd, wide, openAdd }) {
       <NowCard S={S} T={T} k={k} onAdd={() => openAdd('event')} />
       <HabitGrid S={S} update={update} T={T} k={k} />
       <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
-        <GymCard S={S} update={update} T={T} k={k} />
+        <GymCard S={S} update={update} T={T} k={k} onOpen={openGym} />
         <MoodCard S={S} update={update} T={T} k={k} />
       </View>
       {k === T ? <TodoCard S={S} update={update} T={T} /> : null}

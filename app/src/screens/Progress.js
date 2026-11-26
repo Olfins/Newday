@@ -8,6 +8,7 @@ import { addDays, mondayOf } from '../dates';
 import { best, habitRate, has, moodLinks, nh, pc, rate, streak, weekBest, weekStreak } from '../stats';
 import { parseBackup } from '../store';
 import { Bar, Btn, Card, Field, Grid, H, Mu, Row } from '../components/ui';
+import { History } from '../gym/GymModule';
 
 export default function Progress({ S, T, replace, wide }) {
   const any = (k) => nh(S, k) > 0;
@@ -25,6 +26,7 @@ export default function Progress({ S, T, replace, wide }) {
       </Card>
       <Grid wide={wide}>
         <Habits S={S} T={T} />
+        <GymStats S={S} T={T} />
         <Heat S={S} T={T} />
         <Mood S={S} T={T} />
         <Links S={S} />
@@ -91,7 +93,7 @@ function Heat({ S, T }) {
           </View>
         ))}
       </Row>
-      <Mu style={{ marginTop: 8 }}>Plus la case est dorée, plus tu as validé d’habitudes ce jour-là.</Mu>
+      <Mu style={{ marginTop: 8 }}>Plus la case est colorée, plus tu as validé d’habitudes ce jour-là.</Mu>
     </Card>
   );
 }
@@ -179,5 +181,24 @@ function Backup({ S, replace }) {
       </Row>
       {msg ? <Mu style={{ marginTop: 8 }}>{msg}</Mu> : null}
     </Card>
+  );
+}
+
+function GymStats({ S, T }) {
+  const from = addDays(T, -29);
+  const last30 = S.ws.filter((w) => w.d >= from && w.d <= T);
+  const mins = last30.reduce((a, w) => a + (w.mins || 0), 0);
+  return (
+    <View style={{ gap: 14 }}>
+      <Card>
+        <H>Salle · 30 jours</H>
+        <View style={{ flexDirection: 'row', marginTop: 6, justifyContent: 'space-around' }}>
+          <Kpi n={last30.length} l={'séance' + (last30.length > 1 ? 's' : '')} />
+          <Kpi n={mins >= 60 ? Math.floor(mins / 60) + ' h ' + String(mins % 60).padStart(2, '0') : mins + ' min'} l="d’entraînement" />
+          <Kpi n={last30.length ? Math.round(mins / last30.length) : '—'} l="min par séance" />
+        </View>
+      </Card>
+      <History S={S} max={8} title="Historique des séances" />
+    </View>
   );
 }

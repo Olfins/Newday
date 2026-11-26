@@ -58,7 +58,7 @@ export function Dot({ on, today, onPress, disabled, size = 28, a11y }) {
   );
 }
 
-// Barre de progression dorée.
+// Barre de progression colorée.
 export const Bar = ({ pct, style }) => (
   <View style={[s.bar, style]}>
     <View style={[s.barIn, { width: Math.max(0, Math.min(100, pct)) + '%' }]} />

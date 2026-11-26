@@ -47,7 +47,7 @@ export default function Calendar(p) {
             k ? <DayCell key={k} S={S} k={k} T={T} sel={k === cd} onPress={() => setCd(k)} /> : <View key={'e' + i} style={{ width: '14.2857%' }} />
           )}
         </View>
-        <Mu style={{ marginTop: 10, fontSize: 12 }}>Plus la case est dorée, plus tu as validé d’habitudes. Le chiffre est ton humeur, les points tes événements.</Mu>
+        <Mu style={{ marginTop: 10, fontSize: 12 }}>Plus la case est colorée, plus tu as validé d’habitudes. Le chiffre est ton humeur, les points tes événements.</Mu>
       </Card>
       <DayPanel {...p} k={cd} />
     </Grid>

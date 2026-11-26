@@ -57,6 +57,13 @@ export default function DayPanel({ S, update, T, k, onBack }) {
         onPress={() => update((s) => toggleOff(s, k))}
         style={{ marginTop: 14 }}
       />
+      {S.ws.filter((w) => w.d === k).map((w) => (
+        <View key={w.id} style={{ marginTop: 14, padding: 12, borderRadius: 14, backgroundColor: C.accSoft }}>
+          <Text style={{ color: C.tx, fontWeight: '700' }}>Salle : {w.name}</Text>
+          <Mu style={{ fontSize: 12 }}>{w.level} · {w.mins} min · {w.done}/{w.total} exercices</Mu>
+          <Mu style={{ fontSize: 12, marginTop: 4 }}>{w.ex.filter((x) => x.done).map((x) => x.n + (x.kg ? ' (' + x.kg + ' kg)' : '')).join(' · ')}</Mu>
+        </View>
+      ))}
       <EventsBlock S={S} update={update} k={k} T={T} />
     </Card>
   );
