@@ -23,6 +23,9 @@
       "backgroundColor": "#F2EBDC",
       "themeColor": "#F2EBDC"
     },
-    "backgroundColor": "#F2EBDC"
+    "backgroundColor": "#F2EBDC",
+    "experiments": {
+      "baseUrl": "/Newday"
+    }
   }
 }

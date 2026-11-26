@@ -44,3 +44,8 @@ npx expo start --web
 
 Dans l'ancienne app : onglet **Progrès**, carte **Sauvegarde**, bouton **Générer**.
 Colle le texte obtenu dans la carte **Sauvegarde** de la nouvelle app (onglet **Calendrier**, tout en bas), puis **Restaurer**.
+
+## Mettre le site en ligne
+
+`npm run site` construit la version web et la copie à la racine du dépôt (pour https://olfins.github.io/Newday/).
+Il reste à faire un commit et un push sur `main`. L'ancienne version reste dans `old/`.
