@@ -33,7 +33,9 @@ npx expo start --web
 - `src/store.js` : les données et leur enregistrement sur l'appareil.
 - `src/stats.js` : le calcul des séries, records et pourcentages.
 - `src/ics.js` : l'import d'un agenda au format `.ics`.
-- `src/theme.js` : les couleurs (fond sombre, touches dorées).
+- `src/theme.js` : les couleurs (design clair, fond lavande pâle, cartes blanches).
+- `src/components/today.js` : les cartes de l'écran Aujourd'hui (habitudes, salle, humeur, tâches, programme).
+- `src/components/QuickAdd.js` : la fenêtre du bouton +.
 
 ## Reprendre tes données de l'ancienne version
 

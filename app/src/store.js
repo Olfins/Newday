@@ -20,6 +20,7 @@ const starter = () => ({
   ev: {}, // jour -> événements de l'agenda
   off: {}, // jours off
   x: [], // examens
+  gym: {}, // jour -> heures d'arrivée et de départ à la salle
 });
 
 // Complète les morceaux manquants et retire les emojis des habitudes.
@@ -32,6 +33,7 @@ export function normalize(o) {
   s.ev = s.ev || {};
   s.off = s.off || {};
   s.x = Array.isArray(s.x) ? s.x : [];
+  s.gym = s.gym || {};
   s.h.forEach((h) => (h.e = ''));
   delete s.theme;
   return s;
@@ -132,4 +134,19 @@ export function removeEvent(s, k, i) {
 export function addExam(s, name, k) {
   s.x.push({ n: name, d: k });
   s.x.sort((a, b) => a.d.localeCompare(b.d));
+}
+
+// ---- Salle : check-in puis check-out ----
+// L'habitude "Salle" (id "gym") est validée au check-in.
+export function gymCheckIn(s, k, time) {
+  s.gym[k] = { i: time, o: '' };
+  const a = s.d[k] || (s.d[k] = []);
+  if (s.h.some((h) => h.id === 'gym') && !a.includes('gym')) a.push('gym');
+}
+export function gymCheckOut(s, k, time) {
+  if (s.gym[k]) s.gym[k].o = time;
+}
+export function gymReset(s, k) {
+  delete s.gym[k];
+  if (s.d[k]) s.d[k] = s.d[k].filter((id) => id !== 'gym');
 }

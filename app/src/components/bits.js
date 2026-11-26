@@ -5,35 +5,25 @@ import Svg, { Circle } from 'react-native-svg';
 import { C } from '../theme';
 import { Btn, Row } from './ui';
 import { has } from '../stats';
+import { Face, MOOD_LABELS } from './icons';
 
-export function MoodPicker({ value, onPick, disabled }) {
+export function MoodPicker({ value, onPick, disabled, size = 34 }) {
   return (
-    <Row style={{ justifyContent: 'space-between', marginTop: 12 }}>
-      {[1, 2, 3, 4, 5].map((n) => {
-        const on = value === n;
-        return (
-          <Pressable
-            key={n}
-            disabled={disabled}
-            onPress={() => onPick(n)}
-            accessibilityRole="button"
-            accessibilityLabel={'Humeur ' + n + ' sur 5'}
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderWidth: 1,
-              borderColor: on ? C.gold : C.line,
-              backgroundColor: on ? C.gold : 'transparent',
-              opacity: disabled ? 0.3 : 1,
-            }}
-          >
-            <Text style={{ color: on ? C.ink : C.tx, fontSize: 17, fontWeight: '700' }}>{n}</Text>
-          </Pressable>
-        );
-      })}
+    <Row style={{ justifyContent: 'space-between', marginTop: 12, gap: 0 }}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Pressable
+          key={n}
+          disabled={disabled}
+          onPress={() => onPick(n)}
+          hitSlop={4}
+          accessibilityRole="button"
+          accessibilityState={{ selected: value === n }}
+          accessibilityLabel={'Humeur : ' + MOOD_LABELS[n]}
+          style={{ opacity: disabled ? 0.3 : 1, transform: [{ scale: value === n ? 1.12 : 1 }] }}
+        >
+          <Face level={n} size={size} on={value === n} />
+        </Pressable>
+      ))}
     </Row>
   );
 }
@@ -57,13 +47,13 @@ export function Ring({ pct, size = 96 }) {
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
       <Svg width={size} height={size} viewBox="0 0 90 90" style={{ position: 'absolute' }}>
-        <Circle cx="45" cy="45" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" />
+        <Circle cx="45" cy="45" r={r} fill="none" stroke={C.track} strokeWidth="8" />
         {pct > 0 ? <Circle
           cx="45"
           cy="45"
           r={r}
           fill="none"
-          stroke={C.gold}
+          stroke={C.pri}
           strokeWidth="8"
           strokeLinecap="round"
           strokeDasharray={`${(L * pct).toFixed(1)} ${L.toFixed(1)}`}

@@ -49,7 +49,7 @@ export function Dot({ on, today, onPress, disabled, size = 28, a11y }) {
         s.dot,
         { width: size, height: size, borderRadius: size / 2 },
         on && s.dotOn,
-        today && !on && { borderColor: C.gold },
+        today && !on && { borderColor: C.pri },
         disabled && { opacity: 0.25 },
       ]}
     >
@@ -66,7 +66,7 @@ export const Bar = ({ pct, style }) => (
 );
 
 export function Field({ style, ...p }) {
-  return <TextInput placeholderTextColor={C.mu} selectionColor={C.gold} {...p} style={[s.field, style]} />;
+  return <TextInput placeholderTextColor={C.mu} selectionColor={C.pri} {...p} style={[s.field, style]} />;
 }
 
 // Petit bouton "+" ou "✕".
@@ -79,7 +79,7 @@ export function Icon({ label, onPress, a11y, gold, style }) {
       hitSlop={8}
       style={({ pressed }) => [s.icon, gold && s.iconGold, pressed && { opacity: 0.6 }, style]}
     >
-      <Text style={[s.iconTx, gold && { color: C.ink }]}>{label}</Text>
+      <Text style={[s.iconTx, gold && { color: C.onPri }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -124,7 +124,7 @@ export const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.line,
   },
-  hero: { borderColor: C.goldLine },
+  hero: { borderColor: C.accLine },
   h: { color: C.tx, fontSize: 16, fontWeight: '600', marginBottom: 4 },
   mu: { color: C.mu, fontSize: 13 },
   tx: { color: C.tx, fontSize: 15 },
@@ -140,20 +140,20 @@ export const s = StyleSheet.create({
     justifyContent: 'center',
   },
   ghost: { backgroundColor: 'transparent' },
-  btnOn: { backgroundColor: C.gold, borderColor: C.gold },
+  btnOn: { backgroundColor: C.pri, borderColor: C.pri },
   btnTx: { color: C.tx, fontSize: 14, fontWeight: '600' },
-  btnTxOn: { color: C.ink },
+  btnTxOn: { color: C.onPri },
   dot: {
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderColor: C.ring,
+    backgroundColor: C.track,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dotOn: { backgroundColor: C.gold, borderColor: C.gold },
-  dotTx: { color: C.ink, fontWeight: '800' },
-  bar: { height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.08)', overflow: 'hidden', marginTop: 10 },
-  barIn: { height: '100%', borderRadius: 4, backgroundColor: C.gold },
+  dotOn: { backgroundColor: C.pri, borderColor: C.pri },
+  dotTx: { color: C.onPri, fontWeight: '800' },
+  bar: { height: 8, borderRadius: 4, backgroundColor: C.track, overflow: 'hidden', marginTop: 10 },
+  barIn: { height: '100%', borderRadius: 4, backgroundColor: C.pri },
   field: {
     minWidth: 0,
     marginTop: 10,
@@ -162,11 +162,11 @@ export const s = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: C.line,
-    backgroundColor: '#0E0E10',
+    backgroundColor: C.field,
     color: C.tx,
     fontSize: 15,
   },
   icon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  iconGold: { backgroundColor: C.gold },
+  iconGold: { backgroundColor: C.pri },
   iconTx: { color: C.mu, fontSize: 18, fontWeight: '600' },
 });

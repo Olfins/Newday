@@ -13,12 +13,12 @@ function Line({ when, title, color, onDelete, now }) {
         paddingVertical: 9,
         borderTopWidth: 1,
         borderTopColor: C.line,
-        backgroundColor: now ? C.goldSoft : 'transparent',
+        backgroundColor: now ? C.accSoft : 'transparent',
         borderRadius: now ? 10 : 0,
         paddingHorizontal: now ? 6 : 0,
       }}
     >
-      <Text style={{ color: C.gold, fontWeight: '700', fontSize: 13, minWidth: 86 }}>{when}</Text>
+      <Text style={{ color: C.pri, fontWeight: '700', fontSize: 13, minWidth: 86 }}>{when}</Text>
       <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color }} />
       <Text style={{ color: C.tx, flex: 1 }}>{title}</Text>
       <Icon label="✕" onPress={onDelete} a11y={'Supprimer ' + title} />
@@ -88,9 +88,9 @@ export default function EventsBlock({ S, update, k, T }) {
           <Switch
             value={weekly}
             onValueChange={setWeekly}
-            trackColor={{ false: C.line, true: C.goldLine }}
-            thumbColor={weekly ? C.gold : '#888'}
-            activeThumbColor={C.gold}
+            trackColor={{ false: C.line, true: C.accLine }}
+            thumbColor={weekly ? C.pri : '#FFFFFF'}
+            activeThumbColor={C.pri}
           />
           <Mu>Chaque semaine (15 semaines)</Mu>
         </Row>

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, Platform } from 'react-native';
 import Svg, { Line, Path, Circle, Text as SvgText } from 'react-native-svg';
 import * as Clipboard from 'expo-clipboard';
-import { C, goldA } from '../theme';
+import { C, accA } from '../theme';
 import { addDays, mondayOf } from '../dates';
 import { best, habitRate, has, moodLinks, nh, pc, rate, streak, weekBest, weekStreak } from '../stats';
 import { parseBackup } from '../store';
@@ -36,7 +36,7 @@ export default function Progress({ S, T, replace, wide }) {
 
 const Kpi = ({ n, l }) => (
   <View style={{ width: '25%', minWidth: 70, alignItems: 'center', paddingVertical: 6 }}>
-    <Text style={{ color: C.gold, fontSize: 26, fontWeight: '700' }}>{n}</Text>
+    <Text style={{ color: C.pri, fontSize: 26, fontWeight: '700' }}>{n}</Text>
     <Text style={{ color: C.mu, fontSize: 11, textAlign: 'center' }}>{l}</Text>
   </View>
 );
@@ -53,7 +53,7 @@ function Habits({ S, T }) {
           <View key={h.id} style={{ marginTop: 14 }}>
             <Row style={{ justifyContent: 'space-between' }}>
               <Text style={{ color: C.tx, flex: 1 }}>{h.n}{weekly ? ' · ' + w + '×/sem.' : ''}</Text>
-              <Text style={{ color: C.gold, fontWeight: '700' }}>
+              <Text style={{ color: C.pri, fontWeight: '700' }}>
                 {weekly ? weekStreak(S, T, h.id, w) + ' sem.' : streak(S, T, f) + ' j'}
               </Text>
             </Row>
@@ -81,10 +81,10 @@ function Heat({ S, T }) {
                 style={{
                   aspectRatio: 1,
                   borderRadius: 4,
-                  backgroundColor: k > T ? 'rgba(255,255,255,0.02)' : S.off[k] ? 'transparent' : goldA(0.08 + 0.85 * pc(S, k)),
+                  backgroundColor: k > T ? C.track : S.off[k] ? 'transparent' : accA(0.08 + 0.85 * pc(S, k)),
                   borderWidth: S.off[k] && k <= T ? 1 : 0,
                   borderStyle: 'dashed',
-                  borderColor: 'rgba(255,255,255,0.2)',
+                  borderColor: C.ring,
                 }}
               />
             ))}
@@ -110,12 +110,12 @@ function Mood({ S, T }) {
         <Svg width="100%" height="100%" viewBox="0 0 300 100">
           {[1, 2, 3, 4, 5].map((m) => (
             <React.Fragment key={m}>
-              <Line x1="24" x2="300" y1={Y(m)} y2={Y(m)} stroke="rgba(255,255,255,0.08)" />
+              <Line x1="24" x2="300" y1={Y(m)} y2={Y(m)} stroke={C.line} />
               <SvgText x="4" y={Y(m) + 4} fontSize="11" fill={C.mu}>{m}</SvgText>
             </React.Fragment>
           ))}
-          {d ? <Path d={d} fill="none" stroke={C.gold} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" /> : null}
-          {ms.map((m, i) => (m ? <Circle key={i} cx={X(i)} cy={Y(m)} r="3" fill={C.gold} /> : null))}
+          {d ? <Path d={d} fill="none" stroke={C.pri} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" /> : null}
+          {ms.map((m, i) => (m ? <Circle key={i} cx={X(i)} cy={Y(m)} r="3" fill={C.pri} /> : null))}
         </Svg>
       </View>
       <Mu style={{ marginTop: 8 }}>
@@ -138,7 +138,7 @@ function Links({ S }) {
               <View key={o.h.id} style={{ marginTop: 10 }}>
                 <Row style={{ justifyContent: 'space-between' }}>
                   <Text style={{ color: C.tx }}>{o.h.n}</Text>
-                  <Text style={{ color: C.gold, fontWeight: '700' }}>{(diff >= 0 ? '+' : '') + diff.toFixed(1).replace('.', ',')}</Text>
+                  <Text style={{ color: C.pri, fontWeight: '700' }}>{(diff >= 0 ? '+' : '') + diff.toFixed(1).replace('.', ',')}</Text>
                 </Row>
                 <Mu style={{ fontSize: 12 }}>{o.a.toFixed(1)} quand c’est fait · {o.b.toFixed(1)} quand ça ne l’est pas</Mu>
               </View>

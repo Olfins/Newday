@@ -1,7 +1,7 @@
 // Écran "Calendrier" : vue du mois, puis le détail du jour choisi.
 import React, { useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
-import { C, goldA, typeColor } from '../theme';
+import { C, accA, typeColor } from '../theme';
 import { cap, LETTERS, toDate } from '../dates';
 import { pc } from '../stats';
 import { Btn, Card, Grid, Icon, Mu, Row, H } from '../components/ui';
@@ -69,13 +69,13 @@ function DayCell({ S, k, T, sel, onPress }) {
           aspectRatio: 1,
           borderRadius: 10,
           padding: 4,
-          backgroundColor: goldA(pc(S, k) * 0.45),
+          backgroundColor: accA(pc(S, k) * 0.45),
           borderWidth: 1,
-          borderColor: sel ? C.gold : 'transparent',
+          borderColor: sel ? C.pri : 'transparent',
           justifyContent: 'space-between',
         }}
       >
-        <Text style={{ fontSize: 11, color: k === T ? C.gold : C.tx, fontWeight: k === T ? '800' : '400' }}>{+k.slice(8)}</Text>
+        <Text style={{ fontSize: 11, color: k === T ? C.pri : C.tx, fontWeight: k === T ? '800' : '400' }}>{+k.slice(8)}</Text>
         <Text style={{ fontSize: 11, color: C.tx, textAlign: 'center' }}>{m ? String(m) : S.off[k] ? 'off' : ''}</Text>
         <Row style={{ gap: 2, justifyContent: 'center', minHeight: 5 }}>
           {dots.map((t) => <View key={t} style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: typeColor(t) }} />)}

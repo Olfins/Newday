@@ -42,3 +42,21 @@ export function cleanTime(v) {
   if (h > 23 || mi > 59) return null;
   return pad(h) + ':' + pad(mi);
 }
+
+// Numéro de semaine (norme ISO, utilisée en Belgique et en France).
+export function weekNumber(k) {
+  const d = toDate(k);
+  d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
+  const w1 = new Date(d.getFullYear(), 0, 4);
+  return 1 + Math.round(((d - w1) / 864e5 - 3 + ((w1.getDay() + 6) % 7)) / 7);
+}
+
+// Durée entre deux heures "HH:MM", écrite "1 h 05" ou "40 min".
+export function duration(a, b) {
+  if (!a || !b) return '';
+  const m = (+b.slice(0, 2) * 60 + +b.slice(3, 5)) - (+a.slice(0, 2) * 60 + +a.slice(3, 5));
+  if (m <= 0) return '';
+  const h = Math.floor(m / 60), r = m % 60;
+  return h ? h + ' h' + (r ? ' ' + String(r).padStart(2, '0') : '') : r + ' min';
+}
+export const minutes = (s) => +s.slice(0, 2) * 60 + +s.slice(3, 5);
