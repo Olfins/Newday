@@ -1,7 +1,7 @@
 // Le module Salle : choisir un programme, faire la séance, puis sortir.
 // En sortant, la carte Salle de l'écran Aujourd'hui est validée et la séance est enregistrée.
-import React, { useEffect, useRef, useState } from 'react';
-import { Modal, Platform, Pressable, ScrollView, Switch, Text, TextInput, Vibration, View } from 'react-native';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Animated, Modal, PanResponder, Platform, Pressable, ScrollView, Switch, Text, TextInput, Vibration, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
@@ -123,56 +123,20 @@ function Home({ S, update, T, onClose, insets }) {
           })}
         </Row>
 
-        <View style={{ borderRadius: 28, overflow: 'hidden' }}>
-          <LinearGradient colors={[C.lav1, C.lav2, '#F7F6FD']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 18 }}>
-            <Row style={{ justifyContent: 'space-between' }}>
-              <Text style={{ color: C.acc, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>SÉANCE DU JOUR</Text>
-              <View style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.6)' }}>
-                <Text style={{ color: C.tx, fontSize: 12, fontWeight: '600' }}>{lv.full}</Text>
-              </View>
-            </Row>
-            <Row style={{ alignItems: 'center', marginTop: 6 }}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: C.tx, fontSize: 27, fontWeight: '700', letterSpacing: -0.5 }}>{se.name}</Text>
-                <Text style={{ color: C.mu, fontSize: 13, marginTop: 6 }}>{lv.tip}</Text>
-              </View>
-              <Row style={{ gap: 0 }}>
-                <Figure view="f" muscles={mus} size={88} />
-                <Figure view="b" muscles={mus} size={88} />
-              </Row>
-            </Row>
-            <Row style={{ marginTop: 10 }}>
-              <Chip text={lv.duration} />
-              <Chip text={se.exercises.length + ' ' + lv.unit} />
-            </Row>
-            <Row style={{ marginTop: 14 }}>
-              <Btn label="Commencer la séance" active onPress={start} style={{ flex: 1, paddingVertical: 12 }} />
-              {lv.sessions.length > 1 ? <Btn label="Suivante ›" onPress={() => choose(l, (si + 1) % lv.sessions.length)} style={{ paddingVertical: 12 }} /> : null}
-            </Row>
-          </LinearGradient>
-        </View>
-
-        <Row style={{ justifyContent: 'space-between' }}>
-          <Text style={{ color: C.tx, fontSize: 18, fontWeight: '700' }}>Séances</Text>
-          <Mu>{lv.sessions.length} séance{lv.sessions.length > 1 ? 's' : ''}</Mu>
+        <Swiper
+          count={lv.sessions.length}
+          index={si}
+          onChange={(i) => choose(l, i)}
+          render={(i) => <SessionCard lv={lv} se={lv.sessions[i]} />}
+        />
+        <Row style={{ justifyContent: 'center', gap: 6, marginTop: -4 }}>
+          {lv.sessions.map((_, i) => (
+            <Pressable key={i} onPress={() => choose(l, i)} hitSlop={6} accessibilityRole="button" accessibilityLabel={'Séance ' + (i + 1) + ' : ' + lv.sessions[i].name}
+              style={{ width: i === si ? 20 : 7, height: 7, borderRadius: 4, backgroundColor: i === si ? C.pri : C.ring }} />
+          ))}
         </Row>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingRight: 16 }}>
-          {lv.sessions.map((a, i) => {
-            const on = i === si;
-            const m = sessionMuscles(a);
-            return (
-              <Pressable key={i} onPress={() => choose(l, i)} accessibilityRole="button" accessibilityState={{ selected: on }}
-                style={{ width: 150, padding: 10, borderRadius: 22, backgroundColor: C.card, borderWidth: on ? 2 : 1, borderColor: on ? C.pri : C.line }}>
-                <Row style={{ justifyContent: 'center', gap: 0, backgroundColor: C.card2, borderRadius: 14, paddingVertical: 6, marginBottom: 8 }}>
-                  <Figure view="f" muscles={m} size={56} />
-                  <Figure view="b" muscles={m} size={56} />
-                </Row>
-                <Text style={{ color: C.tx, fontWeight: '600' }}>{a.name}</Text>
-                <Mu style={{ fontSize: 12 }}>{a.exercises.length} {lv.unit}</Mu>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+        {lv.sessions.length > 1 ? <Mu style={{ textAlign: 'center', fontSize: 12, marginTop: -6 }}>Glisse la carte vers la gauche ou la droite pour changer de séance</Mu> : null}
+        <Btn label={'Commencer : ' + se.name} active onPress={start} style={{ paddingVertical: 14 }} />
 
         <Text style={{ color: C.tx, fontSize: 18, fontWeight: '700' }}>Exercices</Text>
         <Card style={{ paddingVertical: 4 }}>
@@ -192,6 +156,80 @@ function Home({ S, update, T, onClose, insets }) {
         <Mu style={{ lineHeight: 19 }}>Règle : pas deux pleines énergies sur le même groupe de muscles à moins de 48 h. Si tu hésites, commence par la version moyenne.</Mu>
       </ScrollView>
     </>
+  );
+}
+
+// Carte d'une séance dans le carrousel.
+function SessionCard({ lv, se }) {
+  const mus = sessionMuscles(se);
+  return (
+    <View style={{ flex: 1, borderRadius: 28, overflow: 'hidden' }}>
+      <LinearGradient colors={[C.lav1, C.lav2, '#F7F6FD']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 18, flex: 1 }}>
+        <Row style={{ justifyContent: 'space-between' }}>
+          <Text style={{ color: C.acc, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>{lv.full.toUpperCase()}</Text>
+          <Chip text={lv.duration} />
+        </Row>
+        <Row style={{ alignItems: 'center', marginTop: 6 }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: C.tx, fontSize: 27, fontWeight: '700', letterSpacing: -0.5 }}>{se.name}</Text>
+            <Text style={{ color: C.mu, fontSize: 13, marginTop: 6 }}>{se.exercises.length} {lv.unit}</Text>
+          </View>
+          <Row style={{ gap: 0 }}>
+            <Figure view="f" muscles={mus} size={96} />
+            <Figure view="b" muscles={mus} size={96} />
+          </Row>
+        </Row>
+        <Text style={{ color: C.mu, fontSize: 12, marginTop: 10 }} numberOfLines={2}>
+          {se.exercises.slice(0, 4).map((x) => x.name).join(' · ')}{se.exercises.length > 4 ? '…' : ''}
+        </Text>
+      </LinearGradient>
+    </View>
+  );
+}
+
+// Carrousel : on glisse le doigt (ou la souris sur ordinateur) pour passer d'une carte à l'autre.
+function Swiper({ count, index, onChange, render }) {
+  const [w, setW] = useState(0);
+  const x = useRef(new Animated.Value(0)).current;
+  const live = useRef({});
+  live.current = { count, index, onChange, w };
+
+  // Après un changement de carte, on recentre sans animation (avant l'affichage).
+  useLayoutEffect(() => { x.setValue(0); }, [index, count]);
+
+  const pan = useRef(PanResponder.create({
+    onMoveShouldSetPanResponder: (e, g) => Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy) * 1.2,
+    onMoveShouldSetPanResponderCapture: (e, g) => Math.abs(g.dx) > 12 && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
+    onPanResponderTerminationRequest: () => false,
+    onPanResponderMove: (e, g) => {
+      const { index: i, count: n } = live.current;
+      const edge = (i === 0 && g.dx > 0) || (i === n - 1 && g.dx < 0);
+      x.setValue(edge ? g.dx * 0.3 : g.dx); // résistance au bord
+    },
+    onPanResponderRelease: (e, g) => {
+      const { index: i, count: n, onChange: go, w: W } = live.current;
+      let dir = 0;
+      if (g.dx < -W * 0.2 || g.vx < -0.4) dir = 1;
+      else if (g.dx > W * 0.2 || g.vx > 0.4) dir = -1;
+      if (i + dir < 0 || i + dir > n - 1) dir = 0;
+      Animated.timing(x, { toValue: -dir * (W + 12), duration: 220, useNativeDriver: false }).start(() => { if (dir) go(i + dir); });
+    },
+    onPanResponderTerminate: () => Animated.timing(x, { toValue: 0, duration: 150, useNativeDriver: false }).start(),
+  })).current;
+
+  const gap = 12;
+  return (
+    <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ overflow: 'visible' }} {...pan.panHandlers}>
+      {w ? (
+        <Animated.View style={{ flexDirection: 'row', width: w * 3 + gap * 2, marginLeft: -(w + gap), transform: [{ translateX: x }], userSelect: 'none', cursor: 'grab' }}>
+          {[index - 1, index, index + 1].map((i) => (
+            <View key={i} style={{ width: w, marginRight: gap, opacity: i < 0 || i >= count ? 0 : 1 }}>
+              {i >= 0 && i < count ? render(i) : null}
+            </View>
+          ))}
+        </Animated.View>
+      ) : <View style={{ height: 230 }} />}
+    </View>
   );
 }
 
