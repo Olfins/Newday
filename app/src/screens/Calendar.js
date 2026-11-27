@@ -46,12 +46,12 @@ export default function Calendar(p) {
             <Text key={'l' + i} style={{ width: '14.2857%', textAlign: 'center', color: C.mu, fontSize: 11, marginBottom: 6 }}>{l}</Text>
           ))}
           {cells.map((k, i) =>
-            k ? <DayCell key={k} S={S} k={k} T={T} sel={k === cd} onPress={() => setCd(k)} /> : <View key={'e' + i} style={{ width: '14.2857%' }} />
+            k ? <DayCell key={k} S={S} k={k} T={T} sel={k === cd} onPress={() => setCd(k === cd ? T : k)} /> : <View key={'e' + i} style={{ width: '14.2857%' }} />
           )}
         </View>
-        <Mu style={{ marginTop: 10, fontSize: 12 }}>Plus la case est colorée, plus tu as validé d’habitudes. Le chiffre est ton humeur, les points tes événements.</Mu>
+        <Mu style={{ marginTop: 10, fontSize: 12 }}>Plus la case est colorée, plus tu as validé d’habitudes. Le chiffre est ton humeur, les points tes événements. Touche un autre jour pour voir son détail.</Mu>
       </Card>
-      <DayPanel {...p} k={cd} />
+      {cd !== T ? <DayPanel {...p} k={cd} onBack={() => setCd(T)} /> : null}
     </Grid>
     {/* Progrès et analyse générale, sous le calendrier. */}
     <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 24, fontWeight: '700', marginTop: 10 }}>Progrès et analyse</Text>

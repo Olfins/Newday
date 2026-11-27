@@ -12,7 +12,8 @@ import DayPanel from '../components/DayPanel';
 export default function Week(p) {
   const { S, update, T, wide } = p;
   const [off, setOff] = useState(0);
-  const [sel, setSel] = useState(T);
+  // Jour ouvert en détail. Aujourd'hui n'a pas de détail ici : il est déjà dans l'onglet Jour.
+  const [sel, setSel] = useState(null);
   const [name, setName] = useState('');
   const [edit, setEdit] = useState(false);
   const days = weekOf(addDays(mondayOf(T), 7 * off));
@@ -27,7 +28,7 @@ export default function Week(p) {
   const go = (n) => {
     const o = off + n;
     setOff(o);
-    setSel(o === 0 ? T : addDays(mondayOf(T), 7 * o));
+    setSel(null);
   };
   const add = () => {
     const v = name.trim();
@@ -100,11 +101,11 @@ export default function Week(p) {
 
       <Card>
         <H>Jour par jour</H>
-        <Mu>Choisis un jour pour voir le détail ou ajouter ce que tu as oublié.</Mu>
+        <Mu>Choisis un autre jour pour voir le détail ou ajouter ce que tu as oublié. Aujourd’hui se gère dans l’onglet Jour.</Mu>
         {days.map((k) => {
           const on = k === sel;
           return (
-            <Pressable key={k} onPress={() => setSel(k)} accessibilityRole="button" accessibilityState={{ selected: on }}
+            <Pressable key={k} onPress={() => setSel(k === T || k === sel ? null : k)} accessibilityRole="button" accessibilityState={{ selected: on }}
               style={{
                 flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, paddingHorizontal: 10, marginTop: 6,
                 borderRadius: 14, borderWidth: 1, borderColor: on ? C.pri : 'transparent', backgroundColor: on ? C.accSoft : 'transparent',
@@ -133,8 +134,8 @@ export default function Week(p) {
     </View>
   );
 
-  const panel = <DayPanel {...p} k={sel} />;
-  return wide ? (
+  const panel = sel && sel !== T ? <DayPanel {...p} k={sel} onBack={() => setSel(null)} /> : null;
+  return wide && panel ? (
     <View style={{ flexDirection: 'row', gap: 16, alignItems: 'flex-start' }}>
       <View style={{ flex: 1 }}>{overview}</View>
       <View style={{ flex: 1 }}>{panel}</View>
