@@ -1,0 +1,16 @@
+{
+  "name": "Newday",
+  "short_name": "Newday",
+  "description": "Ton agenda, tes habitudes et ton chat.",
+  "lang": "fr",
+  "start_url": "/Newday/",
+  "scope": "/Newday/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F2EBDC",
+  "theme_color": "#F2EBDC",
+  "icons": [
+    { "src": "/Newday/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/Newday/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

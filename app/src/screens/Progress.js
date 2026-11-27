@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, Platform } from 'react-native';
 import Svg, { Line, Path, Circle, Text as SvgText } from 'react-native-svg';
 import * as Clipboard from 'expo-clipboard';
+import * as DocumentPicker from 'expo-document-picker';
 import { C, accA } from '../theme';
 import { addDays, mondayOf } from '../dates';
 import { best, habitRate, has, moodLinks, nh, pc, rate, streak, weekBest, weekStreak } from '../stats';
@@ -155,31 +156,105 @@ function Links({ S }) {
   );
 }
 
+// Lit un fichier choisi avec le sélecteur (web ou téléphone).
+async function readPicked(asset) {
+  if (asset.file && asset.file.text) return asset.file.text();
+  const r = await fetch(asset.uri);
+  return r.text();
+}
+
+// Enregistre la sauvegarde dans un fichier. Sur iPhone, ouvre le menu Partager
+// (« Enregistrer dans Fichiers », Notes, mail…). Sinon, le fichier est téléchargé.
+async function saveFile(j) {
+  const d = new Date();
+  const name = 'newday-sauvegarde-' + d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + '.json';
+  const blob = new Blob([j], { type: 'application/json' });
+  try {
+    const file = new File([blob], name, { type: 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'Sauvegarde Newday' });
+      return 'shared';
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return 'cancel';
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  return 'downloaded';
+}
+
 function Backup({ S, replace }) {
   const [txt, setTxt] = useState('');
   const [msg, setMsg] = useState('');
-  const exportIt = async () => {
+  const [paste, setPaste] = useState(false);
+  const [pending, setPending] = useState(null); // sauvegarde lue, en attente de confirmation
+  const web = Platform.OS === 'web';
+
+  const ask = (raw) => {
+    try { setPending(parseBackup(raw)); setMsg(''); }
+    catch (e) { setPending(null); setMsg('Ce n’est pas une sauvegarde Newday valide.'); }
+  };
+  const saveIt = async () => {
+    const j = JSON.stringify(S);
+    if (!web) { setPaste(true); setTxt(j); try { await Clipboard.setStringAsync(j); setMsg('Sauvegarde copiée.'); } catch (e) {} return; }
+    try {
+      const r = await saveFile(j);
+      if (r === 'shared') setMsg('Sauvegarde prête. Garde-la dans Fichiers, Notes ou un mail.');
+      else if (r === 'downloaded') setMsg('Fichier de sauvegarde téléchargé.');
+    } catch (e) { setMsg('Impossible de créer le fichier. Utilise le copier-coller en dessous.'); setPaste(true); }
+  };
+  const openIt = async () => {
+    try {
+      const res = await DocumentPicker.getDocumentAsync({ type: web ? '.json,application/json,text/plain' : '*/*', copyToCacheDirectory: true });
+      if (res.canceled || !res.assets || !res.assets[0]) return;
+      ask(await readPicked(res.assets[0]));
+    } catch (e) { setMsg('Fichier illisible.'); }
+  };
+  const copyIt = async () => {
     const j = JSON.stringify(S);
     setTxt(j);
     try { await Clipboard.setStringAsync(j); setMsg('Sauvegarde copiée. Colle-la dans une note ou un mail pour la garder.'); }
     catch (e) { setMsg('Sélectionne et copie le texte ci-dessus.'); }
   };
-  const restore = () => {
-    try { replace(parseBackup(txt)); setMsg('Sauvegarde restaurée.'); }
-    catch (e) { setMsg('Sauvegarde invalide.'); }
-  };
+  const days = pending ? Object.keys(pending.d || {}).length : 0;
+
   return (
     <Card>
       <H>Sauvegarde</H>
-      <Mu>Tes données sont enregistrées sur cet appareil. Génère une copie pour la garder ailleurs. Restaurer remplace les données actuelles.</Mu>
-      <Mu style={{ marginTop: 6 }}>Tu peux aussi coller ici une sauvegarde de l’ancienne version de l’app.</Mu>
-      <Field value={txt} onChangeText={setTxt} multiline placeholder="Colle ici une sauvegarde pour la restaurer"
-        style={{ minHeight: 90, maxHeight: 160, textAlignVertical: 'top', fontSize: 12 }} />
+      <Mu>Tes données restent sur cet appareil. Garde une copie pour ne rien perdre, ou pour passer de Safari à l’app sur l’écran d’accueil.</Mu>
       <Row style={{ marginTop: 10 }}>
-        <Btn label="Générer" onPress={exportIt} style={{ flex: 1 }} />
-        <Btn label="Restaurer" ghost onPress={restore} style={{ flex: 1 }} />
+        <Btn label="Sauvegarder" active onPress={saveIt} style={{ flex: 1 }} />
+        <Btn label="Restaurer" ghost onPress={openIt} style={{ flex: 1 }} />
       </Row>
+      {pending ? (
+        <View style={{ marginTop: 12, padding: 12, borderRadius: 14, backgroundColor: C.field }}>
+          <Text style={{ color: C.tx, fontWeight: '700' }}>Remplacer tes données actuelles ?</Text>
+          <Mu style={{ marginTop: 4 }}>
+            Cette sauvegarde contient {pending.h.length} habitude{pending.h.length > 1 ? 's' : ''} et {days} jour{days > 1 ? 's' : ''} suivi{days > 1 ? 's' : ''}{pending.pet ? ', avec ' + pending.pet.name : ''}. Ce qui est sur cet appareil sera remplacé.
+          </Mu>
+          <Row style={{ marginTop: 10 }}>
+            <Btn label="Annuler" ghost onPress={() => setPending(null)} style={{ flex: 1 }} />
+            <Btn label="Remplacer" active onPress={() => { replace(pending); setPending(null); setTxt(''); setMsg('Sauvegarde restaurée.'); }} style={{ flex: 1 }} />
+          </Row>
+        </View>
+      ) : null}
       {msg ? <Mu style={{ marginTop: 8 }}>{msg}</Mu> : null}
+      {paste ? (
+        <>
+          <Mu style={{ marginTop: 10 }}>Copier-coller : colle ici une sauvegarde (même de l’ancienne version) pour la restaurer.</Mu>
+          <Field value={txt} onChangeText={setTxt} multiline placeholder="Colle ici une sauvegarde"
+            style={{ minHeight: 90, maxHeight: 160, textAlignVertical: 'top', fontSize: 12 }} />
+          <Row style={{ marginTop: 10 }}>
+            <Btn label="Copier mes données" onPress={copyIt} style={{ flex: 1 }} />
+            <Btn label="Restaurer le texte" ghost onPress={() => ask(txt)} style={{ flex: 1 }} />
+          </Row>
+        </>
+      ) : (
+        <Btn label="Copier-coller à la place" ghost onPress={() => setPaste(true)} style={{ marginTop: 8 }} textStyle={{ fontSize: 13 }} />
+      )}
     </Card>
   );
 }
