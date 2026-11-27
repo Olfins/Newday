@@ -64,7 +64,7 @@ export default function Week(p) {
           <H style={{ marginBottom: 0 }}>Habitudes</H>
           <Btn label={edit ? 'Terminé' : 'Modifier'} ghost onPress={() => setEdit(!edit)} style={{ paddingVertical: 6 }} textStyle={{ fontSize: 13 }} />
         </Row>
-        <Row style={{ marginTop: 10 }}>
+        <Row style={{ marginTop: 10, gap: 2 }}>
           <View style={{ flex: 1 }} />
           {LETTERS.map((l, i) => (
             <Text key={i} style={{ width: 30, textAlign: 'center', color: days[i] === T ? C.pri : C.mu, fontSize: 11, fontWeight: '600' }}>{l}</Text>
