@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { C } from '../theme';
 import { Btn, Card, Field, H, Mu, Row } from '../components/ui';
 import { CatDrawing } from './Cat';
-import { ACCESSORIES, EYES, FURS, OUTFITS, PATTERNS, SEXES, SUITS, TIES, randomLook } from './looks';
+import { ACCESSORIES, EYES, FURS, OUTFITS, PATTERNS, SEXES, SUITS, TIES, available, randomLook } from './looks';
 
 const NAMES = ['Charbon', 'Caramel', 'Moka', 'Biscotte', 'Pixel', 'Réglisse', 'Noisette', 'Gaston', 'Praline', 'Oscar', 'Mimi', 'Tofu'];
 
@@ -59,18 +59,22 @@ function Section({ title, sub, children }) {
 }
 
 // initial : l'apparence de départ ; onDone(look, name) ; editing : modifier un chat existant.
-export default function Creator({ initial, initialName, onDone, onCancel, editing, stage = 0, wide }) {
+// own : objets achetés dans la boutique (les accessoires et tenues à acheter n'apparaissent qu'une fois achetés).
+export default function Creator({ initial, initialName, onDone, onCancel, editing, stage = 0, wide, own }) {
+  const accs = available(ACCESSORIES, 'acc', own);
+  const outs = available(OUTFITS, 'out', own);
   const [look, setLook] = useState(initial);
   const [name, setName] = useState(initialName || NAMES[0]);
   const set = (key) => (v) => setLook((l) => ({ ...l, [key]: v }));
   const finalName = name.trim() || 'Minou';
+  const outfit = OUTFITS[look.out] || OUTFITS.cravate;
 
   const previewCard = (
     <View style={{ borderRadius: 28, overflow: 'hidden' }}>
       <LinearGradient colors={[C.lav1, C.lav2, C.lav3]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 16, alignItems: 'center' }}>
         <Row style={{ alignSelf: 'stretch', justifyContent: 'space-between' }}>
           <Text style={{ color: C.acc, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>{editing ? 'MODIFIER' : 'CRÉE TON CHAT'}</Text>
-          <Pressable onPress={() => { setLook(randomLook()); if (!editing) setName(NAMES[Math.floor(Math.random() * NAMES.length)]); }}
+          <Pressable onPress={() => { setLook(randomLook(own)); if (!editing) setName(NAMES[Math.floor(Math.random() * NAMES.length)]); }}
             accessibilityRole="button" accessibilityLabel="Au hasard"
             style={{ paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: C.chip }}>
             <Text style={{ color: C.tx, fontSize: 12, fontWeight: '700' }}>Au hasard</Text>
@@ -96,17 +100,22 @@ export default function Creator({ initial, initialName, onDone, onCancel, editin
           <Section title="Pelage" sub={FURS[look.fur].label}><Swatches title="Pelage" options={FURS} value={look.fur} onPick={set('fur')} color={(k, o) => o.fur} /></Section>
           <Section title="Motif"><Chips title="Motif" options={PATTERNS} value={look.pat} onPick={set('pat')} /></Section>
           <Section title="Yeux" sub={EYES[look.eye].label}><Swatches title="Yeux" options={EYES} value={look.eye} onPick={set('eye')} color={(k, o) => o.c} /></Section>
-          <Section title="Accessoire"><Chips title="Accessoire" options={ACCESSORIES} value={look.acc} onPick={set('acc')} /></Section>
+          <Section title="Accessoire"><Chips title="Accessoire" options={accs} value={look.acc} onPick={set('acc')} /></Section>
         </Card>
         <Card>
           <H>La tenue</H>
-          <Section title="Style"><Chips title="Tenue" options={OUTFITS} value={look.out} onPick={set('out')} /></Section>
-          <Section title={look.out === 'col' ? 'Couleur du pull' : 'Couleur du costume'} sub={SUITS[look.suit].label}>
-            <Swatches title="Couleur du costume" options={SUITS} value={look.suit} onPick={set('suit')} color={(k, o) => o.c} />
-          </Section>
-          <Section title={look.out === 'col' ? 'Couleur du pendentif' : look.out === 'noeud' ? 'Couleur du nœud' : 'Couleur de la cravate'} sub={TIES[look.tie].label}>
-            <Swatches title="Couleur de la cravate" options={TIES} value={look.tie} onPick={set('tie')} color={(k, o) => o.c} />
-          </Section>
+          <Section title="Style"><Chips title="Tenue" options={outs} value={look.out} onPick={set('out')} /></Section>
+          {outfit.suit ? (
+            <Section title={outfit.suit} sub={SUITS[look.suit].label}>
+              <Swatches title={outfit.suit} options={SUITS} value={look.suit} onPick={set('suit')} color={(k, o) => o.c} />
+            </Section>
+          ) : null}
+          {outfit.tie ? (
+            <Section title={outfit.tie} sub={TIES[look.tie].label}>
+              <Swatches title={outfit.tie} options={TIES} value={look.tie} onPick={set('tie')} color={(k, o) => o.c} />
+            </Section>
+          ) : null}
+          {!editing ? <Mu style={{ marginTop: 14, fontSize: 12 }}>D’autres accessoires et tenues t’attendent dans la boutique.</Mu> : null}
         </Card>
         <Btn label={editing ? 'Enregistrer' : 'Adopter ' + finalName} active onPress={() => onDone(look, finalName)} style={{ paddingVertical: 14 }} />
         {onCancel ? <Btn label="Annuler" ghost onPress={onCancel} /> : null}

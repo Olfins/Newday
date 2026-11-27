@@ -3,8 +3,8 @@
 // Quatre tailles (chaton, jeune, adulte, PDG) et trois humeurs.
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, PanResponder, Text, Vibration, View } from 'react-native';
-import Svg, { Circle, Ellipse, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
-import { lookOf, palette } from './looks';
+import Svg, { Circle, ClipPath, Defs, Ellipse, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
+import { lookOf, palette, shade } from './looks';
 
 const pts = (a) => a.map((p) => p.map((v) => +v.toFixed(2)).join(',')).join(' ');
 // Les polygones sont dessinés comme des tracés (plus simple et identique partout).
@@ -85,8 +85,7 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
       ? `M${cx - 8} ${my} Q${cx - 4} ${my + 7} ${cx} ${my} Q${cx + 4} ${my + 7} ${cx + 8} ${my}`
       : `M${cx - 6} ${my} Q${cx - 3} ${my + 4} ${cx} ${my} Q${cx + 3} ${my + 4} ${cx + 6} ${my}`;
 
-  const jacket = L.out === 'cravate' || L.out === 'noeud';
-  const tie = (
+    const tie = (
     <G fill={P.accent}>
       <Polygon points={pts([[cx - 5, top + 2], [cx + 5, top + 2], [cx + 3, top + 9], [cx - 3, top + 9]])} />
       <Polygon points={pts([[cx - 3, top + 9], [cx + 3, top + 9], [cx + 6, top + bh * 0.34], [cx, top + bh * 0.42], [cx - 6, top + bh * 0.34]])} />
@@ -95,7 +94,7 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
   const bodyPath = `M${cx - bw / 2} ${base} L${cx - bw / 2} ${top + 18} Q${cx - bw / 2} ${top} ${cx - bw / 2 + 18} ${top} L${cx + bw / 2 - 18} ${top} Q${cx + bw / 2} ${top} ${cx + bw / 2} ${top + 18} L${cx + bw / 2} ${base} Z`;
 
   // Accessoire : lunettes ou chapeau. Les lunettes remplacent celles du PDG.
-  const glasses = L.acc === 'lunettes' || (stage === 3 && L.acc !== 'soleil');
+  const glasses = L.acc === 'lunettes' || (stage === 3 && L.acc !== 'soleil' && L.acc !== 'monocle');
   const hat = () => {
     switch (L.acc) {
       case 'feutre':
@@ -123,6 +122,66 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
             <Line x1={cx} y1={hy - hr * 1.18} x2={cx} y2={hy - hr * 0.72} stroke={P.suitD} strokeWidth="1.2" />
           </G>
         );
+      case 'couronne': {
+        const y0 = hy - hr * 0.76, w = hr * 0.92;
+        const peaks = [[cx - w / 2, y0 - hr * 0.44], [cx, y0 - hr * 0.52], [cx + w / 2, y0 - hr * 0.44]];
+        return (
+          <G>
+            <Polygon points={pts([[cx - w / 2, y0], peaks[0], [cx - w / 4, y0 - hr * 0.22], peaks[1], [cx + w / 4, y0 - hr * 0.22], peaks[2], [cx + w / 2, y0]])}
+              fill="#E8B83A" stroke="#B8862F" strokeWidth="1.5" strokeLinejoin="round" />
+            <Rect x={cx - w / 2} y={y0 - hr * 0.12} width={w} height={hr * 0.12} fill="#D9A62E" />
+            {peaks.map(([x, y], i) => <Circle key={i} cx={x} cy={y} r="2.6" fill="#F6D77A" />)}
+            <Circle cx={cx} cy={y0 - hr * 0.2} r={hr * 0.08} fill={P.accent} />
+            <Circle cx={cx - w * 0.3} cy={y0 - hr * 0.08} r={hr * 0.045} fill="#FFFFFF" opacity="0.9" />
+            <Circle cx={cx + w * 0.3} cy={y0 - hr * 0.08} r={hr * 0.045} fill="#FFFFFF" opacity="0.9" />
+          </G>
+        );
+      }
+      case 'haut':
+        return (
+          <G>
+            <Rect x={cx - hr * 0.42} y={hy - hr * 1.62} width={hr * 0.84} height={hr * 0.84} rx="3" fill="#22222A" />
+            <Rect x={cx - hr * 0.42} y={hy - hr * 0.98} width={hr * 0.84} height={hr * 0.15} fill={P.accent} />
+            <Ellipse cx={cx} cy={hy - hr * 0.8} rx={hr * 0.76} ry={hr * 0.13} fill="#17171D" />
+            <Line x1={cx - hr * 0.3} y1={hy - hr * 1.52} x2={cx - hr * 0.3} y2={hy - hr * 1.08} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.18" />
+          </G>
+        );
+      case 'bonnet': {
+        const col = P.accent, colD = shade(P.accent, 0.8);
+        return (
+          <G>
+            <Path d={`M${cx - hr * 0.8} ${hy - hr * 0.5} Q${cx - hr * 0.8} ${hy - hr * 1.28} ${cx} ${hy - hr * 1.28} Q${cx + hr * 0.8} ${hy - hr * 1.28} ${cx + hr * 0.8} ${hy - hr * 0.5} Z`} fill={col} />
+            <G stroke={colD} strokeWidth="1.6" strokeLinecap="round">
+              {[-0.45, -0.15, 0.15, 0.45].map((d) => <Line key={d} x1={cx + hr * d} y1={hy - hr * 0.66} x2={cx + hr * d * 0.8} y2={hy - hr * 1.12} />)}
+            </G>
+            <Rect x={cx - hr * 0.86} y={hy - hr * 0.7} width={hr * 1.72} height={hr * 0.26} rx={hr * 0.12} fill={colD} />
+            <Circle cx={cx} cy={hy - hr * 1.32} r={hr * 0.17} fill="#FFFFFF" />
+          </G>
+        );
+      }
+      case 'casque':
+        return (
+          <G>
+            <Path d={`M${cx - hr * 0.94} ${hy - hr * 0.1} Q${cx - hr * 0.98} ${hy - hr * 1.32} ${cx} ${hy - hr * 1.3} Q${cx + hr * 0.98} ${hy - hr * 1.32} ${cx + hr * 0.94} ${hy - hr * 0.1}`}
+              stroke="#2B2B35" strokeWidth={hr * 0.13} strokeLinecap="round" fill="none" />
+            {[-1, 1].map((d) => (
+              <G key={d}>
+                <Rect x={cx + d * hr * 0.95 - hr * 0.17} y={hy - hr * 0.36} width={hr * 0.34} height={hr * 0.56} rx={hr * 0.14} fill={P.accent} />
+                <Rect x={cx + d * hr * 0.95 - hr * 0.07} y={hy - hr * 0.28} width={hr * 0.14} height={hr * 0.4} rx={hr * 0.07} fill={shade(P.accent, 0.75)} />
+              </G>
+            ))}
+          </G>
+        );
+      case 'noeud': {
+        const bx = cx + hr * 0.5, by = hy - hr * 0.84;
+        return (
+          <G fill={P.accent}>
+            <Path d={`M${bx} ${by} L${bx - hr * 0.32} ${by - hr * 0.2} L${bx - hr * 0.3} ${by + hr * 0.2} Z`} strokeLinejoin="round" stroke={P.accent} strokeWidth="2" />
+            <Path d={`M${bx} ${by} L${bx + hr * 0.32} ${by - hr * 0.2} L${bx + hr * 0.3} ${by + hr * 0.2} Z`} strokeLinejoin="round" stroke={P.accent} strokeWidth="2" />
+            <Circle cx={bx} cy={by} r={hr * 0.1} fill={shade(P.accent, 0.8)} />
+          </G>
+        );
+      }
       default:
         return null;
     }
@@ -165,12 +224,85 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
           <Circle cx={cx} cy={top + bh * 0.45} r="4" fill="none" stroke={P.accent} strokeWidth="2" />
           <Line x1={cx} y1={top + 8} x2={cx} y2={top + bh * 0.45 - 4} stroke={P.accent} strokeWidth="1.2" />
         </G>
+      ) : L.out === 'trench' ? (
+        <G>
+          <Path d={bodyPath} fill={P.suit} />
+          <Polygon points={pts([[cx - 11, top], [cx + 11, top], [cx, top + bh * 0.38]])} fill="#FFFFFF" />
+          {tie}
+          <Polygon points={pts([[cx - 11, top], [cx - 30, top + 2], [cx - 25, top + bh * 0.3], [cx - 3, top + bh * 0.42]])} fill="#CDB38B" />
+          <Polygon points={pts([[cx + 11, top], [cx + 30, top + 2], [cx + 25, top + bh * 0.3], [cx + 3, top + bh * 0.42]])} fill="#CDB38B" />
+          <Rect x={cx - bw / 2} y={top + bh * 0.58} width={bw} height="7" fill="#8E7652" />
+          <Rect x={cx + 6} y={top + bh * 0.58 - 1.5} width="11" height="10" rx="1.5" stroke="#4E4130" strokeWidth="2" fill="none" />
+          {[0.47, 0.78].map((f) => [-9, 9].map((d) => <Circle key={f + '' + d} cx={cx + d} cy={top + bh * f} r="2.3" fill="#5E4E36" />))}
+        </G>
+      ) : L.out === 'cuir' ? (
+        <G>
+          <Path d={bodyPath} fill={P.suit} />
+          <Polygon points={pts([[cx - 12, top], [cx + 12, top], [cx + 6, top + bh * 0.42], [cx - 6, top + bh * 0.42]])} fill="#F2F0F5" />
+          <Polygon points={pts([[cx - 12, top], [cx - 29, top + 2], [cx - 21, top + bh * 0.32], [cx - 5, top + bh * 0.44]])} fill="#1C1614" />
+          <Polygon points={pts([[cx + 12, top], [cx + 29, top + 2], [cx + 22, top + bh * 0.28], [cx + 5, top + bh * 0.46]])} fill="#1C1614" />
+          <Line x1={cx + 5} y1={top + bh * 0.46} x2={cx + 12} y2={base - 6} stroke="#C9C8D2" strokeWidth="2.2" />
+          <Rect x={cx + 9} y={top + bh * 0.55} width="4" height="7" rx="1" fill="#C9C8D2" />
+          <Rect x={cx - bw / 2} y={base - 10} width={bw} height="6" fill="#1C1614" />
+          <Rect x={cx - 6} y={base - 11} width="9" height="8" rx="1.5" stroke="#C9C8D2" strokeWidth="1.6" fill="none" />
+          <Circle cx={cx - 22} cy={top + bh * 0.26} r="1.8" fill="#C9C8D2" />
+          <Circle cx={cx + 23} cy={top + bh * 0.22} r="1.8" fill="#C9C8D2" />
+          <Path d={`M${cx - bw / 2 + 7} ${top + 16} Q${cx - bw / 2 + 5} ${top + bh * 0.5} ${cx - bw / 2 + 8} ${base - 14}`} stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.12" />
+        </G>
+      ) : L.out === 'doudoune' ? (
+        <G>
+          <Path d={bodyPath} fill={P.suit} />
+          <G stroke={P.suitD} strokeWidth="2" fill="none" strokeLinecap="round">
+            {[1, 2, 3, 4].map((i) => {
+              const y = top + (bh * i) / 5;
+              return <Path key={i} d={`M${cx - bw / 2 + 1} ${y} Q${cx} ${y + 5} ${cx + bw / 2 - 1} ${y}`} />;
+            })}
+          </G>
+          <G stroke="#FFFFFF" strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.16">
+            {[0, 1, 2, 3].map((i) => <Path key={i} d={`M${cx - bw / 2 + 8} ${top + (bh * i) / 5 + 6} q8 -2 14 0`} />)}
+          </G>
+          <Rect x={cx - 24} y={top - 5} width="48" height="13" rx="6" fill={P.suitD} />
+          <Line x1={cx} y1={top + 6} x2={cx} y2={base} stroke={shade(P.suit, 0.5)} strokeWidth="2" />
+          <Rect x={cx - 2} y={top + 8} width="4" height="8" rx="1" fill="#C9C8D2" />
+        </G>
+      ) : L.out === 'bucheron' ? (
+        <G>
+          <Defs>
+            <ClipPath id={'plaid' + stage}><Path d={bodyPath} /></ClipPath>
+          </Defs>
+          <Path d={bodyPath} fill={P.suit} />
+          <G clipPath={`url(#plaid${stage})`}>
+            {[-3, -2, -1, 0, 1, 2, 3].map((i) => <Rect key={'v' + i} x={cx + i * 13 - 3} y={top} width="6" height={bh} fill={P.suitD} opacity="0.55" />)}
+            {[0, 1, 2, 3, 4, 5, 6].map((i) => <Rect key={'h' + i} x={cx - bw / 2} y={top + 6 + i * 13} width={bw} height="6" fill={P.suitD} opacity="0.55" />)}
+            {[-3, -2, -1, 0, 1, 2, 3].map((i) => <Line key={'a' + i} x1={cx + i * 13 + 6.5} y1={top} x2={cx + i * 13 + 6.5} y2={base} stroke={P.accent} strokeWidth="1" opacity="0.8" />)}
+            {[0, 1, 2, 3, 4, 5, 6].map((i) => <Line key={'b' + i} x1={cx - bw / 2} y1={top + 12.5 + i * 13} x2={cx + bw / 2} y2={top + 12.5 + i * 13} stroke={P.accent} strokeWidth="1" opacity="0.8" />)}
+          </G>
+          <Polygon points={pts([[cx - 8, top], [cx + 8, top], [cx, top + 9]])} fill="#F2F0F5" />
+          <Polygon points={pts([[cx - 8, top], [cx - 20, top + 1], [cx - 3, top + 15]])} fill={shade(P.suit, 0.7)} />
+          <Polygon points={pts([[cx + 8, top], [cx + 20, top + 1], [cx + 3, top + 15]])} fill={shade(P.suit, 0.7)} />
+          <Line x1={cx} y1={top + 12} x2={cx} y2={base} stroke={shade(P.suit, 0.6)} strokeWidth="1.5" />
+          {[0.36, 0.56, 0.76].map((f) => <Circle key={f} cx={cx} cy={top + bh * f} r="2" fill="#F2F0F5" />)}
+        </G>
+      ) : L.out === 'armure' ? (
+        <G>
+          <Path d={bodyPath} fill={P.suit} stroke="#7D8592" strokeWidth="1.5" />
+          <Path d={`M${cx - bw / 2 + 8} ${top + 8} Q${cx} ${top + 1} ${cx + bw / 2 - 8} ${top + 8} L${cx + bw / 2 - 12} ${top + bh * 0.56} Q${cx} ${top + bh * 0.7} ${cx - bw / 2 + 12} ${top + bh * 0.56} Z`} fill="#C6CCD6" stroke="#7D8592" strokeWidth="1.5" />
+          <Path d={`M${cx - 6} ${top + bh * 0.2} h12 v8 q0 7 -6 10 q-6 -3 -6 -10 Z`} fill={P.accent} stroke="#6B7380" strokeWidth="1" />
+          <Line x1={cx} y1={top + bh * 0.2 + 2} x2={cx} y2={top + bh * 0.2 + 15} stroke="#FFFFFF" strokeWidth="1.4" opacity="0.85" />
+          <G stroke="#7D8592" strokeWidth="1.6" fill="none">
+            {[0.72, 0.84].map((f) => <Path key={f} d={`M${cx - bw / 2 + 1} ${top + bh * f} Q${cx} ${top + bh * f + 5} ${cx + bw / 2 - 1} ${top + bh * f}`} />)}
+          </G>
+          {[-1, 1].map((d) => <Ellipse key={d} cx={cx + d * (bw / 2 - 5)} cy={top + 9} rx="13" ry="9" fill="#B8BFCA" stroke="#7D8592" strokeWidth="1.5" />)}
+          {[-1, 1].map((d) => [0.4, 0.62].map((f) => <Circle key={d + '' + f} cx={cx + d * (bw / 2 - 6)} cy={top + bh * f} r="1.7" fill="#6B7380" />))}
+          <Rect x={cx - 22} y={top - 4} width="44" height="10" rx="4" fill="#8E96A3" />
+          <Path d={`M${cx - bw / 2 + 14} ${top + 14} Q${cx - 10} ${top + 9} ${cx - 8} ${top + bh * 0.4}`} stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.35" />
+        </G>
       ) : (
         <G>
           <Path d={bodyPath} fill={P.suit} />
           <Polygon points={pts([[cx - 13, top], [cx + 13, top], [cx, top + bh * 0.44]])} fill="#FFFFFF" />
-          <Polygon points={pts([[cx - 13, top], [cx - 26, top + 3], [cx - 2, top + bh * 0.5]])} fill={P.suitD} />
-          <Polygon points={pts([[cx + 13, top], [cx + 26, top + 3], [cx + 2, top + bh * 0.5]])} fill={P.suitD} />
+          <Polygon points={pts([[cx - 13, top], [cx - 26, top + 3], [cx - 2, top + bh * 0.5]])} fill={L.out === 'smoking' ? '#3A3A48' : P.suitD} />
+          <Polygon points={pts([[cx + 13, top], [cx + 26, top + 3], [cx + 2, top + bh * 0.5]])} fill={L.out === 'smoking' ? '#3A3A48' : P.suitD} />
           {L.out === 'cravate' ? tie : (
             <G fill={P.accent}>
               <Path d={`M${cx} ${top + 6} L${cx - 13} ${top} L${cx - 13} ${top + 12} Z`} />
@@ -180,7 +312,7 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
           )}
           <Circle cx={cx} cy={top + bh * 0.6} r="2.4" fill={P.suitD} />
           <Circle cx={cx} cy={top + bh * 0.76} r="2.4" fill={P.suitD} />
-          {stage >= 2 ? <Polygon points={pts([[cx - bw / 2 + 9, top + bh * 0.34], [cx - bw / 2 + 21, top + bh * 0.34], [cx - bw / 2 + 15, top + bh * 0.26]])} fill="#FFFFFF" /> : null}
+          {L.out === 'smoking' ? <Polygon points={pts([[cx - bw / 2 + 9, top + bh * 0.34], [cx - bw / 2 + 21, top + bh * 0.34], [cx - bw / 2 + 15, top + bh * 0.25]])} fill="#FFFFFF" /> : stage >= 2 ? <Polygon points={pts([[cx - bw / 2 + 9, top + bh * 0.34], [cx - bw / 2 + 21, top + bh * 0.34], [cx - bw / 2 + 15, top + bh * 0.26]])} fill="#FFFFFF" /> : null}
         </G>
       )}
       {/* Pattes */}
@@ -229,6 +361,12 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
           <Line x1={cx - hr * 0.14} y1={hy - hr * 0.1} x2={cx + hr * 0.14} y2={hy - hr * 0.1} stroke="#17171D" strokeWidth="2.5" />
           <Line x1={cx - hr * 0.56} y1={hy - hr * 0.1} x2={cx - hr * 0.44} y2={hy - hr * 0.02} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
           <Line x1={cx + hr * 0.24} y1={hy - hr * 0.1} x2={cx + hr * 0.36} y2={hy - hr * 0.02} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
+        </G>
+      ) : null}
+      {L.acc === 'monocle' ? (
+        <G>
+          <Circle cx={cx + hr * 0.4} cy={hy - hr * 0.04} r={hr * 0.27} stroke="#C9A23A" strokeWidth="2.6" fill="rgba(255,255,255,0.16)" />
+          <Path d={`M${cx + hr * 0.6} ${hy + hr * 0.16} Q${cx + hr * 0.86} ${hy + hr * 0.6} ${cx + hr * 0.56} ${hy + hr * 0.98}`} stroke="#C9A23A" strokeWidth="1.3" fill="none" />
         </G>
       ) : null}
       {hat()}

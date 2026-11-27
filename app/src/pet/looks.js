@@ -29,13 +29,37 @@ export const ACCESSORIES = {
   feutre: { label: 'Chapeau feutre' },
   beret: { label: 'Béret' },
   casquette: { label: 'Casquette' },
+  // À acheter dans la boutique (price = prix en pièces).
+  noeud: { label: 'Nœud', price: 80 },
+  bonnet: { label: 'Bonnet en laine', price: 120 },
+  monocle: { label: 'Monocle', price: 150 },
+  casque: { label: 'Casque audio', price: 180 },
+  haut: { label: 'Haut-de-forme', price: 220 },
+  couronne: { label: 'Couronne', price: 350 },
 };
+// suit / tie : titre du choix de couleur (null = couleur fixe, pas de choix).
 export const OUTFITS = {
-  cravate: { label: 'Costume et cravate' },
-  noeud: { label: 'Costume et nœud' },
-  gilet: { label: 'Gilet et cravate' },
-  col: { label: 'Col roulé' },
+  cravate: { label: 'Costume et cravate', suit: 'Couleur du costume', tie: 'Couleur de la cravate' },
+  noeud: { label: 'Costume et nœud', suit: 'Couleur du costume', tie: 'Couleur du nœud' },
+  gilet: { label: 'Gilet et cravate', suit: 'Couleur du gilet', tie: 'Couleur de la cravate' },
+  col: { label: 'Col roulé', suit: 'Couleur du pull', tie: 'Couleur du pendentif' },
+  // À acheter dans la boutique.
+  bucheron: { label: 'Chemise de bûcheron', price: 250, suit: 'Couleur des carreaux', tie: 'Couleur des fils' },
+  doudoune: { label: 'Doudoune', price: 350, suit: 'Couleur de la doudoune', tie: null },
+  smoking: { label: 'Smoking', price: 400, suit: null, tie: 'Couleur du nœud' },
+  cuir: { label: 'Veste en cuir', price: 450, suit: null, tie: null },
+  trench: { label: 'Trench-coat', price: 500, suit: null, tie: 'Couleur de la cravate' },
+  armure: { label: 'Armure de chevalier', price: 900, suit: null, tie: 'Couleur du blason' },
 };
+// Tenues dont la couleur est fixe.
+const FIXED = { smoking: '#1D1D25', cuir: '#2E2522', trench: '#B89B72', armure: '#A9B0BC' };
+
+// Garde seulement les choix gratuits ou achetés (own : objets achetés, comme « acc:couronne »).
+export function available(options, prefix, own) {
+  const o = {};
+  Object.entries(options).forEach(([k, v]) => { if (!v.price || (own && own[prefix + ':' + k])) o[k] = v; });
+  return o;
+}
 export const SUITS = {
   marine: { label: 'Marine', c: '#2F3B5C' },
   anthracite: { label: 'Anthracite', c: '#4A4D5C' },
@@ -70,13 +94,14 @@ export function lookOf(pet) {
   // Les anciennes coiffures n'existent plus : on les remplace par « aucun accessoire ».
   delete l.hair; delete l.hc;
   if (!ACCESSORIES[l.acc]) l.acc = 'none';
+  if (!OUTFITS[l.out]) l.out = 'cravate';
   return l;
 }
 
 const keys = (o) => Object.keys(o);
 const any = (o) => { const k = keys(o); return k[Math.floor(Math.random() * k.length)]; };
-export function randomLook() {
-  return { fur: any(FURS), pat: any(PATTERNS), eye: any(EYES), acc: any(ACCESSORIES), out: any(OUTFITS), suit: any(SUITS), tie: any(TIES), sex: any(SEXES) };
+export function randomLook(own) {
+  return { fur: any(FURS), pat: any(PATTERNS), eye: any(EYES), acc: any(available(ACCESSORIES, 'acc', own)), out: any(available(OUTFITS, 'out', own)), suit: any(SUITS), tie: any(TIES), sex: any(SEXES) };
 }
 
 // Assombrit une couleur (#RRGGBB) : f = 0.8 donne 80 % de la luminosité.
@@ -90,7 +115,7 @@ export function shade(hex, f) {
 export function palette(look) {
   const L = { ...DEFAULT_LOOK, ...look };
   const F = FURS[L.fur] || FURS.noir;
-  const suit = (SUITS[L.suit] || SUITS.marine).c;
+  const suit = FIXED[L.out] || (SUITS[L.suit] || SUITS.marine).c;
   const socks = L.pat === 'chaussettes' && L.fur !== 'blanc';
   return {
     ...F,
@@ -100,7 +125,7 @@ export function palette(look) {
     suit,
     suitD: shade(suit, 0.75),
     accent: (TIES[L.tie] || TIES.violet).c,
-    arm: L.out === 'gilet' ? '#FFFFFF' : suit,
+    arm: L.out === 'gilet' ? '#FFFFFF' : L.out === 'bucheron' ? shade(suit, 0.9) : suit,
     paw: socks ? '#FFFFFF' : F.fur,
     muzzle: socks ? '#FFFFFF' : F.muzzle,
     patch: F.dark ? '#EDEAF3' : F.furD,

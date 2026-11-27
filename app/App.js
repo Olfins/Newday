@@ -1,6 +1,6 @@
 // Point d'entrée de l'app : charge les données, affiche l'en-tête, l'écran choisi
 // et la barre d'onglets flottante (4 onglets).
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +15,8 @@ import Calendar from './src/screens/Calendar';
 import Pet from './src/screens/Pet';
 import QuickAdd from './src/components/QuickAdd';
 import GymModule from './src/gym/GymModule';
+import { CoinRain } from './src/components/Coin';
+import { bank, earnedCoins, needsBank, GAIN_LABEL } from './src/pet/coins';
 import { CalIcon, HomeIcon, MoodIcon, MoonIcon, PawIcon, PlusIcon, WeekIcon } from './src/components/icons';
 
 // Quatre onglets : Jour (aujourd'hui), Semaine, Calendrier (avec les progrès), Pet.
@@ -62,6 +64,29 @@ function Main() {
     if (!m) { m = document.createElement('meta'); m.name = 'theme-color'; document.head.appendChild(m); }
     m.content = C.bg;
   }, [theme]);
+
+  // Pièces : on met les jours passés à la banque, puis on fait pleuvoir des pièces quand on en gagne.
+  const [rain, setRain] = useState(null);
+  const prevCoins = useRef(null);
+  useEffect(() => {
+    if (!S) return;
+    if (needsBank(S, T)) {
+      if (!S.coins) {
+        const c = JSON.parse(JSON.stringify(S));
+        bank(c, T);
+        if (c.coins.past > 0) setRain({ id: Date.now(), n: c.coins.past, label: 'Cadeau de bienvenue' });
+      }
+      update((s) => bank(s, T));
+      return;
+    }
+    const e = earnedCoins(S, T);
+    const p = prevCoins.current;
+    prevCoins.current = e ? { ...e, T } : null;
+    if (!e || !p || p.T !== T || e.total <= p.total) return;
+    let why = null, most = 0;
+    Object.keys(e.today).forEach((k) => { const d = e.today[k] - (p.today[k] || 0); if (d > most) { most = d; why = k; } });
+    setRain({ id: Date.now(), n: e.total - p.total, label: why ? GAIN_LABEL[why] : '' });
+  }, [S, T]);
 
   if (!S || !theme) return <View style={{ flex: 1, backgroundColor: C.bg }} />;
 
@@ -145,6 +170,7 @@ function Main() {
       </View>
 
       <GymModule visible={gym} onClose={() => setGym(false)} S={S} update={update} T={T} />
+      {rain ? <CoinRain key={rain.id} amount={rain.n} label={rain.label} onDone={() => setRain(null)} /> : null}
       <QuickAdd visible={!!add} initial={add || 'todo'} onClose={() => setAdd(null)} update={update} k={addDay} T={T} />
     </View>
   );
