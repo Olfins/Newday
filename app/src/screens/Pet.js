@@ -10,20 +10,24 @@ import Creator from '../pet/Creator';
 import { DEFAULT_LOOK, lookOf, SEXES } from '../pet/looks';
 import { PomodoroCard, BREAK_TEXT, clock, remaining, usePomodoro } from '../pet/Pomodoro';
 import { adopt, feed, moodOf, restyle, pantry, STAGES, STEP, stageOf, XP } from '../pet/rules';
+import { Room } from '../pet/Room';
+import Shop from '../pet/Shop';
+import { CoinPill } from '../components/Coin';
+import { GAIN, wallet } from '../pet/coins';
 
 export default function Pet(p) {
   return p.S.pet ? <Home {...p} /> : <Adopt {...p} />;
 }
 
 // ---------- Adoption : on crée son chat ----------
-function Adopt({ update, T, wide }) {
+function Adopt({ S, update, T, wide }) {
   return (
     <>
       <View>
         <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 22, fontWeight: '700' }}>Crée ton compagnon</Text>
         <Mu style={{ marginTop: 4 }}>Il commence chaton et grandit quand tu tiens tes habitudes. Choisis chaque détail, tu pourras le changer plus tard.</Mu>
       </View>
-      <Creator initial={DEFAULT_LOOK} wide={wide} onDone={(look, name) => update((s) => adopt(s, T, look, name))} />
+      <Creator initial={DEFAULT_LOOK} wide={wide} own={S.shop && S.shop.own} onDone={(look, name) => update((s) => adopt(s, T, look, name))} />
       <Rules />
     </>
   );
@@ -67,7 +71,7 @@ function Home({ S, update, T, wide }) {
 
   if (edit) {
     return (
-      <Creator initial={look} initialName={pet.name} editing stage={st} wide={wide}
+      <Creator initial={look} initialName={pet.name} editing stage={st} wide={wide} own={S.shop && S.shop.own}
         onCancel={() => setEdit(false)}
         onDone={(l, n) => { update((s) => restyle(s, l, n)); setEdit(false); setBubble({ id: Date.now(), text: 'Nouveau look !' }); }} />
     );
@@ -79,13 +83,18 @@ function Home({ S, update, T, wide }) {
         <LinearGradient colors={[C.lav1, C.lav2, C.lav3]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 18, alignItems: 'center' }}>
           <Row style={{ alignSelf: 'stretch', justifyContent: 'space-between' }}>
             <Text style={{ color: C.acc, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>{STAGES[st].toUpperCase()}</Text>
+            <Row style={{ gap: 6 }}>
+            <CoinPill n={wallet(S, T)} bg={C.chip} textColor={C.tx} />
             <View style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, backgroundColor: C.chip }}>
               <Text style={{ color: C.tx, fontSize: 12, fontWeight: '600', fontVariant: ['tabular-nums'] }}>
                 {scene === 'sleep' ? 'Jour off · dort' : scene ? (scene === 'work' ? 'Au travail' : 'Pause') + ' · ' + clock(remaining(pomo, timer.now)) : mood === 'happy' ? 'Content' : mood === 'ok' ? 'Tranquille' : 'A faim'}
               </Text>
             </View>
+            </Row>
           </Row>
-          <Cat look={look} stage={st} mood={mood} size={230} name={pet.name} message={bubble} scene={scene} />
+          <Room room={S.shop && S.shop.room}>
+            <Cat look={look} stage={st} mood={mood} size={230} name={pet.name} message={bubble} scene={scene} />
+          </Room>
           <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 28, fontWeight: '700', letterSpacing: -0.2 }}>{pet.name}</Text>
           <Mu style={{ textAlign: 'center', marginTop: 2 }}>{shownText}</Mu>
           <Pressable onPress={() => setEdit(true)} accessibilityRole="button" accessibilityLabel="Modifier son apparence"
@@ -104,6 +113,8 @@ function Home({ S, update, T, wide }) {
           </View>
         </LinearGradient>
       </View>
+
+      <Shop S={S} update={update} T={T} stage={st} onEvent={(text) => setBubble({ id: Date.now(), text })} />
 
       <PomodoroCard S={S} update={update} T={T} timer={timer} name={pet.name} />
 
@@ -159,6 +170,13 @@ function Rules() {
         Il faut 250 XP pour grandir : environ une semaine régulière.{'\n'}
         Étapes : Chaton, Jeune chat, Adulte, puis PDG.{'\n'}
         S’il ne mange pas pendant deux jours, il a faim, mais il ne perd rien.
+      </Mu>
+      <H style={{ marginTop: 14 }}>Les pièces</H>
+      <Mu style={{ lineHeight: 20 }}>
+        Chaque habitude cochée rapporte {GAIN.h} pièces, et {GAIN.all} de plus si tu fais toutes tes habitudes du jour.{'\n'}
+        Une tâche faite : {GAIN.t} pièces. Un rendez-vous ou un cours passé : {GAIN.ev}. Une séance de salle : {GAIN.w}.{'\n'}
+        Décocher retire les pièces du jour ; les jours passés restent acquis.{'\n'}
+        Dépense-les dans la boutique : accessoires, tenues et déco pour sa pièce.
       </Mu>
     </Card>
   );
