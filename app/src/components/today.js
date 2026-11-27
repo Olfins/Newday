@@ -154,7 +154,7 @@ export function GymCard({ S, update, T, k, style, onOpen }) {
   const label = k !== T ? (state === 'out' ? 'Valider' : 'Décocher') : state === 'run' ? 'Reprendre' : state === 'out' ? 'Commencer' : 'Ouvrir';
   return (
     <Card style={[{ flex: 1, overflow: 'hidden' }, style]}>
-      <LinearGradient colors={['rgba(168,127,51,0)', on ? 'rgba(168,127,51,0.22)' : 'rgba(168,127,51,0.08)']}
+      <LinearGradient colors={[`rgba(${C.accRgb},0)`, on ? `rgba(${C.accRgb},0.22)` : `rgba(${C.accRgb},0.08)`]}
         style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '70%' }} pointerEvents="none" />
       <Row style={{ gap: 6 }}><DumbbellIcon color={C.acc} /><H style={{ marginBottom: 0 }}>Salle</H></Row>
       <Pressable
@@ -198,7 +198,7 @@ export function MoodCard({ S, update, T, k, style }) {
   const fut = k > T;
   return (
     <Card style={[{ flex: 1, overflow: 'hidden' }, style]}>
-      <LinearGradient colors={['rgba(31,77,58,0)', m ? 'rgba(31,77,58,0.16)' : 'rgba(31,77,58,0.06)']}
+      <LinearGradient colors={[`rgba(${C.priRgb},0)`, m ? `rgba(${C.priRgb},0.16)` : `rgba(${C.priRgb},0.06)`]}
         style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '70%' }} pointerEvents="none" />
       <Row style={{ gap: 6 }}><MoodIcon color={C.acc} /><H style={{ marginBottom: 0 }}>Humeur</H></Row>
       <View style={{ flex: 1, justifyContent: 'center' }}>
@@ -310,7 +310,7 @@ export function NowCard({ S, T, k, onAdd }) {
 
 function Hero({ label, title, sub, pct, action }) {
   return (
-    <View style={{ borderRadius: 26, overflow: 'hidden', shadowColor: '#6B5320', shadowOpacity: 0.15, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } }}>
+    <View style={{ borderRadius: 26, overflow: 'hidden', shadowColor: C.shadow, shadowOpacity: 0.15, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } }}>
       <LinearGradient colors={[C.lav1, C.lav2, C.lav3]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
         style={{ padding: 18 }}>
         <Row style={{ gap: 6 }}>

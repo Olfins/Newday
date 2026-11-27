@@ -234,7 +234,7 @@ function Swiper({ count, index, onChange, render }) {
 }
 
 const Chip = ({ text }) => (
-  <View style={{ paddingVertical: 5, paddingHorizontal: 11, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.6)' }}>
+  <View style={{ paddingVertical: 5, paddingHorizontal: 11, borderRadius: 999, backgroundColor: C.chip }}>
     <Text style={{ color: C.tx, fontSize: 12, fontWeight: '600' }}>{text}</Text>
   </View>
 );
