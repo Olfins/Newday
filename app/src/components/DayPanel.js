@@ -21,7 +21,7 @@ export default function DayPanel({ S, update, T, k, onBack }) {
   return (
     <Card hero>
       <H style={{ fontSize: 18 }}>{cap(fmt(k, { weekday: 'long', day: 'numeric', month: 'long' }))}</H>
-      {k !== T && onBack ? <Btn label="Retour à aujourd’hui" onPress={onBack} style={{ alignSelf: 'flex-start', marginTop: 6 }} /> : null}
+      {onBack ? <Btn label="Fermer" ghost onPress={onBack} style={{ alignSelf: 'flex-start', marginTop: 6 }} /> : null}
 
       <Row style={{ gap: 18, marginTop: 12 }}>
         <Ring pct={pc(S, k)} />

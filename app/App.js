@@ -13,7 +13,7 @@ import Calendar from './src/screens/Calendar';
 import Pet from './src/screens/Pet';
 import QuickAdd from './src/components/QuickAdd';
 import GymModule from './src/gym/GymModule';
-import { CalIcon, HomeIcon, PawIcon, PlusIcon, WeekIcon } from './src/components/icons';
+import { CalIcon, HomeIcon, PawIcon, WeekIcon } from './src/components/icons';
 
 // Quatre onglets : Jour (aujourd'hui), Semaine, Calendrier (avec les progrès), Pet.
 const TABS = [
@@ -49,7 +49,6 @@ function Main() {
   const pick = (id) => setTab(id);
   const title = current.title || current.label;
   const addDay = tab === 'cal' ? cd : T;
-  const addKind = tab === 'week' || tab === 'pet' ? 'habit' : tab === 'cal' ? 'event' : 'todo';
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
@@ -74,11 +73,6 @@ function Main() {
           <View style={{ flex: 1 }}>
             <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 32, fontWeight: '700', letterSpacing: -0.3 }}>{title}</Text>
           </View>
-          {/* Ajouter (tâche, événement, examen, habitude) : en haut, pas dans le menu. */}
-          <Pressable onPress={() => setAdd(addKind)} accessibilityRole="button" accessibilityLabel="Ajouter" hitSlop={6}
-            style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: C.pri, opacity: pressed ? 0.8 : 1 })}>
-            <PlusIcon size={20} color={C.onPri} />
-          </Pressable>
         </View>
         <Screen S={S} update={update} replace={replace} T={T} cd={cd} setCd={setCd} wide={wide} openAdd={setAdd} openGym={() => setGym(true)} />
       </ScrollView>
