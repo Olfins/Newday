@@ -72,7 +72,7 @@ export default function Creator({ initial, initialName, onDone, onCancel, editin
           <Text style={{ color: C.acc, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>{editing ? 'MODIFIER' : 'CRÉE TON CHAT'}</Text>
           <Pressable onPress={() => { setLook(randomLook()); if (!editing) setName(NAMES[Math.floor(Math.random() * NAMES.length)]); }}
             accessibilityRole="button" accessibilityLabel="Au hasard"
-            style={{ paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.7)' }}>
+            style={{ paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: C.chip }}>
             <Text style={{ color: C.tx, fontSize: 12, fontWeight: '700' }}>Au hasard</Text>
           </Pressable>
         </Row>

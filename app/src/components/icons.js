@@ -94,11 +94,16 @@ export function Face({ level, size = 28, on }) {
   };
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path d={HEAD} fill={on ? C.pri : C.card} stroke={on ? C.pri : '#D3C6AC'} strokeWidth="1.3" strokeLinejoin="round" />
+      <Path d={HEAD} fill={on ? C.pri : C.card} stroke={on ? C.pri : C.ring} strokeWidth="1.3" strokeLinejoin="round" />
       <Path d="M11.2 14.5h1.6L12 15.3z" fill={on ? '#E9A3B4' : f} stroke={on ? '#E9A3B4' : f} strokeWidth="0.6" strokeLinejoin="round" />
-      <Path d="M1.8 14.1l3.2 0.3M2.1 16.3l3-0.7M22.2 14.1l-3.2 0.3M21.9 16.3l-3-0.7" stroke={on ? C.pri : '#D3C6AC'} strokeWidth="0.9" strokeLinecap="round" />
+      <Path d="M1.8 14.1l3.2 0.3M2.1 16.3l3-0.7M22.2 14.1l-3.2 0.3M21.9 16.3l-3-0.7" stroke={on ? C.pri : C.ring} strokeWidth="0.9" strokeLinecap="round" />
       {parts[level]}
     </Svg>
   );
 }
 export const MOOD_LABELS = ['', 'Mal', 'Bof', 'Moyen', 'Bien', 'Super'];
+
+// Changer de design : une lune pour passer en mode Focus, une tête de chat pour revenir en Cozy.
+export const MoonIcon = ({ size = 20, color = C.tx }) => (
+  <Svg {...base(size, color)}><Path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" /></Svg>
+);

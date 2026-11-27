@@ -1,10 +1,12 @@
 // Point d'entrée de l'app : charge les données, affiche l'en-tête, l'écran choisi
 // et la barre d'onglets flottante (4 onglets).
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { C } from './src/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { C, setTheme, THEME_KEY } from './src/theme';
+import { restyle } from './src/components/ui';
 import { today } from './src/dates';
 import { useStore } from './src/store';
 import Today from './src/screens/Today';
@@ -13,7 +15,7 @@ import Calendar from './src/screens/Calendar';
 import Pet from './src/screens/Pet';
 import QuickAdd from './src/components/QuickAdd';
 import GymModule from './src/gym/GymModule';
-import { CalIcon, HomeIcon, PawIcon, PlusIcon, WeekIcon } from './src/components/icons';
+import { CalIcon, HomeIcon, MoodIcon, MoonIcon, PawIcon, PlusIcon, WeekIcon } from './src/components/icons';
 
 // Quatre onglets : Jour (aujourd'hui), Semaine, Calendrier (avec les progrès), Pet.
 const TABS = [
@@ -41,8 +43,27 @@ function Main() {
   const [cd, setCd] = useState(T); // jour sélectionné
   const [add, setAdd] = useState(null); // type d'ajout ouvert avec le bouton +
   const [gym, setGym] = useState(false); // module Salle ouvert
+  // Design choisi : « cozy » (chat, crème) ou « focus » (dark academia). Mémorisé sur l'appareil.
+  const [theme, setThemeName] = useState(null);
+  useEffect(() => {
+    AsyncStorage.getItem(THEME_KEY).then((v) => applyTheme(v || 'cozy')).catch(() => applyTheme('cozy'));
+  }, []);
+  const applyTheme = (name) => { setTheme(name); restyle(); setThemeName(C.name); };
+  const toggleTheme = () => {
+    const next = C.name === 'focus' ? 'cozy' : 'focus';
+    applyTheme(next);
+    AsyncStorage.setItem(THEME_KEY, next).catch(() => {});
+  };
+  // Sur le web, la couleur du fond de la page et de la barre du navigateur suit le design.
+  useEffect(() => {
+    if (!theme || typeof document === 'undefined') return;
+    document.body.style.backgroundColor = C.bg;
+    let m = document.querySelector('meta[name="theme-color"]');
+    if (!m) { m = document.createElement('meta'); m.name = 'theme-color'; document.head.appendChild(m); }
+    m.content = C.bg;
+  }, [theme]);
 
-  if (!S) return <View style={{ flex: 1, backgroundColor: C.bg }} />;
+  if (!S || !theme) return <View style={{ flex: 1, backgroundColor: C.bg }} />;
 
   const current = TABS.find((t) => t.id === tab);
   const Screen = current.screen;
@@ -52,8 +73,8 @@ function Main() {
   const addKind = tab === 'week' || tab === 'pet' ? 'habit' : tab === 'cal' ? 'event' : 'todo';
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <StatusBar style="dark" />
+    <View key={theme} style={{ flex: 1, backgroundColor: C.bg }}>
+      <StatusBar style={C.dark ? 'light' : 'dark'} />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
@@ -74,6 +95,12 @@ function Main() {
           <View style={{ flex: 1 }}>
             <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 32, fontWeight: '700', letterSpacing: -0.3 }}>{title}</Text>
           </View>
+          {/* Changer de design : Cozy (chat) ou Focus (sombre). */}
+          <Pressable onPress={toggleTheme} accessibilityRole="button" hitSlop={6}
+            accessibilityLabel={C.name === 'focus' ? 'Passer au design Cozy' : 'Passer au mode Focus'}
+            style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: C.card, borderWidth: 1, borderColor: C.line, opacity: pressed ? 0.7 : 1 })}>
+            {C.name === 'focus' ? <MoodIcon size={20} color={C.pri} /> : <MoonIcon size={19} color={C.pri} />}
+          </Pressable>
           {/* Ajouter (tâche, événement, examen, habitude) : en haut, pas dans le menu. */}
           <Pressable onPress={() => setAdd(addKind)} accessibilityRole="button" accessibilityLabel="Ajouter" hitSlop={6}
             style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: C.pri, opacity: pressed ? 0.8 : 1 })}>
@@ -89,7 +116,8 @@ function Main() {
             accessibilityRole="tablist"
             style={{
               flexDirection: 'row', gap: 4, padding: 6, borderRadius: 999,
-              backgroundColor: C.bar,
+              backgroundColor: C.bar, borderWidth: 1, borderColor: C.barLine,
+              backdropFilter: 'blur(20px) saturate(160%)', WebkitBackdropFilter: 'blur(20px) saturate(160%)',
               shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 16, shadowOffset: { width: 0, height: 6 },
             }}
           >

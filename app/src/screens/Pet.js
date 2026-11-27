@@ -79,7 +79,7 @@ function Home({ S, update, T, wide }) {
         <LinearGradient colors={[C.lav1, C.lav2, C.lav3]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 18, alignItems: 'center' }}>
           <Row style={{ alignSelf: 'stretch', justifyContent: 'space-between' }}>
             <Text style={{ color: C.acc, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>{STAGES[st].toUpperCase()}</Text>
-            <View style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.6)' }}>
+            <View style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, backgroundColor: C.chip }}>
               <Text style={{ color: C.tx, fontSize: 12, fontWeight: '600', fontVariant: ['tabular-nums'] }}>
                 {scene === 'sleep' ? 'Jour off · dort' : scene ? (scene === 'work' ? 'Au travail' : 'Pause') + ' · ' + clock(remaining(pomo, timer.now)) : mood === 'happy' ? 'Content' : mood === 'ok' ? 'Tranquille' : 'A faim'}
               </Text>
@@ -89,7 +89,7 @@ function Home({ S, update, T, wide }) {
           <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 28, fontWeight: '700', letterSpacing: -0.2 }}>{pet.name}</Text>
           <Mu style={{ textAlign: 'center', marginTop: 2 }}>{shownText}</Mu>
           <Pressable onPress={() => setEdit(true)} accessibilityRole="button" accessibilityLabel="Modifier son apparence"
-            style={{ marginTop: 10, paddingVertical: 6, paddingHorizontal: 14, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.7)' }}>
+            style={{ marginTop: 10, paddingVertical: 6, paddingHorizontal: 14, borderRadius: 999, backgroundColor: C.chip }}>
             <Text style={{ color: C.tx, fontSize: 13, fontWeight: '600' }}>Modifier son apparence</Text>
           </Pressable>
           <View style={{ alignSelf: 'stretch', marginTop: 14 }}>
@@ -97,7 +97,7 @@ function Home({ S, update, T, wide }) {
               <Text style={{ color: C.tx, fontWeight: '600', fontSize: 13 }}>{max ? 'Niveau maximum' : 'Vers « ' + STAGES[st + 1] + ' »'}</Text>
               <Text style={{ color: C.mu, fontSize: 13 }}>{max ? (pet.xp || 0) + ' XP' : into + ' / ' + STEP + ' XP'}</Text>
             </Row>
-            <View style={{ height: 8, borderRadius: 4, backgroundColor: 'rgba(23,23,29,0.1)', marginTop: 6, overflow: 'hidden' }}>
+            <View style={{ height: 8, borderRadius: 4, backgroundColor: C.track, marginTop: 6, overflow: 'hidden' }}>
               <View style={{ width: (max ? 100 : Math.round((100 * into) / STEP)) + '%', height: '100%', backgroundColor: C.pri }} />
             </View>
             {!max ? <Mu style={{ fontSize: 12, marginTop: 4 }}>Encore environ {daysLeft} jour{daysLeft > 1 ? 's' : ''} réguliers.</Mu> : null}

@@ -1,6 +1,6 @@
 // Les briques visuelles réutilisées dans tous les écrans.
 import React from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { C } from '../theme';
 
 export const Card = ({ children, style, hero }) => (
@@ -116,7 +116,10 @@ export function Grid({ wide, children }) {
   );
 }
 
-export const s = StyleSheet.create({
+// Styles recalculés à chaque changement de design (voir restyle).
+export const s = {};
+export const restyle = () => Object.assign(s, makeStyles());
+const makeStyles = () => ({
   card: {
     backgroundColor: C.card,
     borderRadius: 22,
@@ -170,3 +173,4 @@ export const s = StyleSheet.create({
   iconGold: { backgroundColor: C.pri },
   iconTx: { color: C.mu, fontSize: 18, fontWeight: '600' },
 });
+restyle();
