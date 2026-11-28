@@ -1,30 +1,25 @@
-// Écran "Progrès" : séries, régularité, humeur et sauvegarde.
+// Écran "Progrès" : diapositives en anneaux, séries, régularité, humeur et sauvegarde.
 import React, { useState } from 'react';
 import { View, Text, Platform } from 'react-native';
 import Svg, { Line, Path, Circle, Text as SvgText } from 'react-native-svg';
 import * as Clipboard from 'expo-clipboard';
 import * as DocumentPicker from 'expo-document-picker';
 import { C, accA } from '../theme';
-import { addDays, mondayOf } from '../dates';
+import { addDays, mondayOf, toDate } from '../dates';
 import { best, habitRate, has, moodLinks, nh, pc, rate, streak, weekBest, weekStreak } from '../stats';
-import { parseBackup } from '../store';
+import { gymDone, gymHabitId, parseBackup } from '../store';
+import { RingTile, Rings, Slide } from '../components/Rings';
 import { Bar, Btn, Card, Field, Grid, H, Mu, Row } from '../components/ui';
 import { History } from '../gym/GymModule';
 
 export default function Progress({ S, T, replace, wide }) {
-  const any = (k) => nh(S, k) > 0;
-  const pcf = (k) => pc(S, k);
   return (
     <>
-      <Card hero>
-        <H>Progression</H>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
-          <Kpi n={streak(S, T, any)} l="jours en série" />
-          <Kpi n={best(S, T, any)} l="record" />
-          <Kpi n={rate(S, T, pcf, 7) + '%'} l="7 jours" />
-          <Kpi n={rate(S, T, pcf, 30) + '%'} l="30 jours" />
-        </View>
-      </Card>
+      <Overview S={S} T={T} wide={wide} />
+      <Grid wide={wide}>
+        <HabitSlide S={S} T={T} />
+        <WeekSlide S={S} T={T} />
+      </Grid>
       <Grid wide={wide}>
         <Habits S={S} T={T} />
         <GymStats S={S} T={T} />
@@ -34,6 +29,95 @@ export default function Progress({ S, T, replace, wide }) {
         <Backup S={S} replace={replace} />
       </Grid>
     </>
+  );
+}
+
+const fr = (n) => n.toFixed(1).replace('.', ',');
+const SLIDES = 3;
+
+// Diapositive 1 : vue d'ensemble en quatre anneaux.
+function Overview({ S, T, wide }) {
+  const any = (k) => nh(S, k) > 0;
+  const pcf = (k) => pc(S, k);
+  const r7 = rate(S, T, pcf, 7), r30 = rate(S, T, pcf, 30);
+  const st = streak(S, T, any), rec = Math.max(st, best(S, T, any));
+  const ms = [...Array(30)].map((_, i) => S.m[addDays(T, -i)] || 0).filter(Boolean);
+  const avg = ms.length ? ms.reduce((a, b) => a + b, 0) / ms.length : 0;
+  const w = wide ? '25%' : '50%';
+  const size = wide ? 128 : 112;
+  return (
+    <Slide kicker="Progression" title="Vue d’ensemble" page={1} total={SLIDES} foot={'Au ' + toDate(T).toLocaleDateString('fr-BE', { day: 'numeric', month: 'long', year: 'numeric' })}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+        <RingTile width={w} size={size} label="7 jours" sub="habitudes faites" pct={r7} value={r7} unit="%" />
+        <RingTile width={w} size={size} label="30 jours" sub="habitudes faites" pct={r30} value={r30} unit="%" />
+        <RingTile width={w} size={size} label="Série" sub={'record ' + rec + ' j'} pct={rec ? (100 * st) / rec : 0} value={st} unit=" j" color={C.acc} />
+        <RingTile width={w} size={size} label="Humeur" sub={ms.length ? 'moyenne sur 30 j' : 'aucune note sur 30 j'} pct={(100 * avg) / 5} value={ms.length ? fr(avg) : '–'} unit={ms.length ? '/5' : ''} color={C.c3} />
+      </View>
+    </Slide>
+  );
+}
+
+// Diapositive 2 : un anneau par habitude, sur 30 jours.
+function HabitSlide({ S, T }) {
+  return (
+    <Slide kicker="30 derniers jours" title="Tes habitudes" page={2} total={SLIDES} foot="Selon la fréquence voulue de chaque habitude">
+      {S.h.length ? (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+          {S.h.map((h) => {
+            const w = h.w || 7, weekly = w < 7, f = (k) => has(S, k, h.id);
+            const r = habitRate(S, T, h);
+            return (
+              <RingTile key={h.id} width="33.33%" size={84} stroke={8} label={h.n} pct={r} value={r} unit="%"
+                sub={weekly ? 'série ' + weekStreak(S, T, h.id, w) + ' sem.' : 'série ' + streak(S, T, f) + ' j'} />
+            );
+          })}
+        </View>
+      ) : <Mu>Ajoute une habitude pour voir ses statistiques.</Mu>}
+    </Slide>
+  );
+}
+
+// Diapositive 3 : la semaine en cours, en anneaux concentriques.
+function WeekSlide({ S, T }) {
+  const mon = mondayOf(T);
+  const days = [];
+  for (let k = mon; k <= T; k = addDays(k, 1)) if (!S.off[k]) days.push(k);
+  const d = days.length;
+  let want = 0, done = 0;
+  S.h.forEach((h) => {
+    const w = h.w || 7;
+    want += w >= 7 ? d : Math.min(w, Math.ceil((w * d) / 7));
+    done += Math.min(w, days.filter((k) => has(S, k, h.id)).length);
+  });
+  const gid = gymHabitId(S);
+  const gh = gid ? S.h.find((h) => h.id === gid) : null;
+  const gw = gh ? Math.min(7, gh.w || 7) : 3;
+  const gdone = days.filter((k) => gymDone(S, k)).length;
+  const mdone = days.filter((k) => S.m[k]).length;
+  const items = [
+    { label: 'Habitudes', pct: want ? (100 * done) / want : 0, value: done + ' / ' + want, color: C.pri },
+    { label: 'Salle', pct: (100 * gdone) / gw, value: gdone + ' / ' + gw, color: C.acc },
+    { label: 'Humeur notée', pct: d ? (100 * mdone) / d : 0, value: mdone + ' / ' + d + ' j', color: C.c3 },
+  ];
+  return (
+    <Slide kicker={'Semaine du ' + toDate(mon).toLocaleDateString('fr-BE', { day: 'numeric', month: 'long' })} title="Cette semaine" page={3} total={SLIDES} foot="Les jours off ne comptent pas">
+      <Row style={{ gap: 18, alignItems: 'center' }}>
+        <Rings items={items} size={140} stroke={12} gap={4} />
+        <View style={{ flex: 1, gap: 12 }}>
+          {items.map((it) => (
+            <View key={it.label}>
+              <Row style={{ gap: 8 }}>
+                <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: it.color }} />
+                <Text style={{ color: C.mu, fontSize: 12, fontWeight: '600' }}>{it.label}</Text>
+              </Row>
+              <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 20, fontWeight: '700', marginLeft: 18, fontVariant: ['tabular-nums'] }}>
+                {it.value} <Text style={{ fontSize: 13, color: C.mu, fontWeight: '600' }}>{Math.round(Math.min(100, it.pct))} %</Text>
+              </Text>
+            </View>
+          ))}
+        </View>
+      </Row>
+    </Slide>
   );
 }
 
@@ -233,7 +317,7 @@ function Backup({ S, replace }) {
         <View style={{ marginTop: 12, padding: 12, borderRadius: 14, backgroundColor: C.field }}>
           <Text style={{ color: C.tx, fontWeight: '700' }}>Remplacer tes données actuelles ?</Text>
           <Mu style={{ marginTop: 4 }}>
-            Cette sauvegarde contient {pending.h.length} habitude{pending.h.length > 1 ? 's' : ''} et {days} jour{days > 1 ? 's' : ''} suivi{days > 1 ? 's' : ''}{pending.pet ? ', avec ' + pending.pet.name : ''}. Ce qui est sur cet appareil sera remplacé.
+            Cette sauvegarde contient {pending.h.length} habitude{pending.h.length > 1 ? 's' : ''} et {days} jour{days > 1 ? 's' : ''} suivi{days > 1 ? 's' : ''}. Ce qui est sur cet appareil sera remplacé.
           </Mu>
           <Row style={{ marginTop: 10 }}>
             <Btn label="Annuler" ghost onPress={() => setPending(null)} style={{ flex: 1 }} />

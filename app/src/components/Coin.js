@@ -1,7 +1,7 @@
-// La pièce dorée (avec une patte de chat) et la pluie de pièces qui tombe quand on en gagne.
+// La pièce dorée (gravée d'une feuille) et la pluie de pièces qui tombe quand on en gagne.
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, Text, View, useWindowDimensions } from 'react-native';
-import Svg, { Circle, Ellipse, G } from 'react-native-svg';
+import Svg, { Circle, Ellipse, G, Path } from 'react-native-svg';
 
 export function Coin({ size = 18 }) {
   return (
@@ -9,13 +9,8 @@ export function Coin({ size = 18 }) {
       <Circle cx="12" cy="12" r="11.2" fill="#D9A62E" />
       <Circle cx="12" cy="11.4" r="10" fill="#F2C14C" />
       <Circle cx="12" cy="11.4" r="7.6" fill="none" stroke="#D9A62E" strokeWidth="1.2" />
-      <G fill="#C08F22">
-        <Ellipse cx="12" cy="13.4" rx="2.9" ry="2.3" />
-        <Circle cx="8.9" cy="10.4" r="1.15" />
-        <Circle cx="11" cy="8.7" r="1.15" />
-        <Circle cx="13.1" cy="8.7" r="1.15" />
-        <Circle cx="15.1" cy="10.4" r="1.15" />
-      </G>
+      <Path d="M8 15.4c0-4 2.6-6.6 7.6-7.2-.3 5-2.9 7.6-6.6 7.6-.4 0-.7-.1-1-.4z" fill="#C08F22" />
+      <Path d="M8.6 15.2l4.6-4.6" stroke="#F2C14C" strokeWidth="0.9" strokeLinecap="round" />
       <Ellipse cx="8.4" cy="6.6" rx="2.2" ry="1" fill="#FFF3C4" opacity="0.7" transform="rotate(-35 8.4 6.6)" />
     </Svg>
   );

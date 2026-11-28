@@ -28,7 +28,7 @@ npx expo start --web
 ## Où est quoi
 
 - `App.js` : l'en-tête, les onglets et le choix de l'écran.
-- `src/screens/` : les écrans des 4 onglets : Jour (aujourd'hui), Semaine, Calendrier (avec les progrès et l'analyse, dans `Progress.js`) et Pet.
+- `src/screens/` : les écrans des 4 onglets : Jour (aujourd'hui), Semaine, Calendrier (avec les progrès en anneaux façon diapositives, dans `Progress.js`) et Bonsaï.
 - `src/components/` : les morceaux réutilisés (cartes, boutons, détail d'un jour, agenda).
 - `src/store.js` : les données et leur enregistrement sur l'appareil.
 - `src/stats.js` : le calcul des séries, records et pourcentages.
@@ -37,7 +37,8 @@ npx expo start --web
 - `src/components/today.js` : les cartes de l'écran Aujourd'hui (habitudes, salle, humeur, tâches, programme).
 - `src/components/QuickAdd.js` : la fenêtre du bouton + (en haut à droite de chaque écran).
 - `src/components/pickers.js` : la roue des heures et le calendrier façon iPhone.
-- `src/pet/` : le compagnon. Les trois starters (plante, eau, feu) et leurs tenues sont dessinés dans `Monster.js`, leurs noms, évolutions et prix dans `species.js`, l'écran de choix dans `Starters.js`. Le chat d'origine est dans `Cat.js`. Règles de nourriture, d'XP et de changement de starter dans `rules.js`, pièces dans `coins.js`, boutique dans `Shop.js`, décorations, murs, sols et lits dans `Room.js`.
+- `src/bonsai/` : le bonsaï et sa bibliothèque. Règles de croissance, de santé et des étagères dans `growth.js`, dessin de l'arbre, des pots et des sellettes dans `Bonsai.js`, la pièce et ses livres dans `Library.js`, catalogue de la boutique dans `items.js`, boutique dans `Shop.js`, pièces dans `coins.js`, minuteur dans `Pomodoro.js`.
+- `src/components/Rings.js` : les anneaux de statistiques et les diapositives de l'onglet Calendrier.
 - `src/gym/` : le module Salle (programmes dans `programs.js`, séance en cours dans `GymModule.js`, silhouette des muscles dans `Figure.js`).
 
 ## Reprendre tes données de l'ancienne version

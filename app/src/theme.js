@@ -36,6 +36,7 @@ export const THEMES = {
     bar: 'rgba(28,58,44,0.97)', // barre d'onglets et minuteur (vert sapin foncé)
     barLine: 'transparent',
     red: '#B4483A',
+    c3: '#4F7596', // troisième couleur des anneaux (bleu ardoise)
     serif,
   },
   focus: {
@@ -64,6 +65,7 @@ export const THEMES = {
     bar: 'rgba(32,30,28,0.82)', // barre d'onglets façon iPhone, verre fumé flouté
     barLine: 'rgba(237,227,208,0.10)',
     red: '#D0645A',
+    c3: '#7F9AAE',
     serif,
   },
 };
