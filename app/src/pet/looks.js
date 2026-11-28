@@ -1,3 +1,5 @@
+import { MON_OUTFITS, STARTERS as SPECIES_KEYS, defaultMonLook } from './species';
+
 // Les choix pour créer son chat : pelage, motif, yeux, accessoire, tenue, couleurs, garçon ou fille.
 // Chaque option a un libellé en français et ses couleurs.
 
@@ -95,6 +97,16 @@ export function lookOf(pet) {
   delete l.hair; delete l.hc;
   if (!ACCESSORIES[l.acc]) l.acc = 'none';
   if (!OUTFITS[l.out]) l.out = 'cravate';
+  return l;
+}
+
+// L'apparence de n'importe quel compagnon (chat ou starter).
+export function petLook(pet) {
+  const sp = pet && SPECIES_KEYS.includes(pet.species) ? pet.species : null;
+  if (!sp) return lookOf(pet);
+  const l = { ...defaultMonLook(sp), ...((pet && pet.look) || {}) };
+  if (!ACCESSORIES[l.acc]) l.acc = 'none';
+  if (!MON_OUTFITS[sp][l.out]) l.out = sp + '-none';
   return l;
 }
 

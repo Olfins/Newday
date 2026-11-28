@@ -5,6 +5,8 @@
 //   (7 pâtées = 210 XP + quelques rendez-vous).
 import { addDays, hm } from '../dates';
 import { nh } from '../stats';
+import { wallet } from './coins';
+import { CHANGE_PRICE, defaultMonLook } from './species';
 
 export const XP = { p: 30, c: 10 };
 export const STEP = 250;
@@ -53,8 +55,34 @@ export function feed(s, T, type) {
   s.pet.last = T;
 }
 
-export function adopt(s, T, look, name) {
+// species : 'plante', 'eau' ou 'feu' (rien = le chat d'origine).
+export function adopt(s, T, look, name, species) {
   s.pet = { look, name: name || 'Minou', since: T, fed: { p: 0, c: 0 }, xp: 0, last: null };
+  if (species) s.pet.species = species;
+}
+
+// Changer de starter.
+// - Depuis le chat : gratuit, une seule fois, et l'XP est gardée (le chat devient un starter).
+// - Sinon : coûte CHANGE_PRICE pièces et tout recommence à l'étape 1 (XP, garde-manger).
+// Les pièces restantes, les objets achetés et les habitudes ne changent pas.
+export function changeCost(pet) {
+  return pet && !pet.species && !pet.migrated ? 0 : CHANGE_PRICE;
+}
+export function changeStarter(s, T, species, name) {
+  const free = changeCost(s.pet) === 0;
+  if (!free) {
+    if (wallet(s, T) < CHANGE_PRICE) return false;
+    s.coins.spent = (s.coins.spent || 0) + CHANGE_PRICE;
+  }
+  const old = s.pet;
+  const look = { ...defaultMonLook(species), acc: (old.look && old.look.acc) || 'none', sex: (old.look && old.look.sex) || 'm' };
+  if (free) {
+    // Le chat garde son XP, son garde-manger et sa date d'adoption.
+    s.pet = { ...old, species, look, name: name || old.name, migrated: T, cat: old.look };
+  } else {
+    s.pet = { look, name: name || old.name, species, since: T, fed: { p: 0, c: 0 }, xp: 0, last: null, migrated: old.migrated || T };
+  }
+  return true;
 }
 // Change l'apparence et le prénom, sans toucher à l'XP.
 export function restyle(s, look, name) {
