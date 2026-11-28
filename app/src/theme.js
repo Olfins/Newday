@@ -1,5 +1,6 @@
 // Couleurs et tailles utilisées partout dans l'app.
-// Deux designs au choix, mémorisés sur l'appareil :
+// Trois designs au choix, mémorisés sur l'appareil :
+// - « Verre » (par défaut) : widgets iOS sombres, voir plus bas.
 // - « Cozy » (Bureau chaleureux) : fond crème, cartes beige clair, vert sapin pour
 //   ce qui est choisi, touches de laiton doré, titres avec une police à empattements.
 // - « Focus » (dark academia) : fond presque noir, cartes sombres façon iPhone,
@@ -8,8 +9,47 @@ import { Platform } from 'react-native';
 
 // Police à empattements pour les titres (déjà présente sur chaque appareil).
 const serif = Platform.select({ ios: 'Georgia', android: 'serif', default: 'Georgia, "Times New Roman", serif' });
+// Police système façon iPhone (SF) pour le design « Verre ».
+const sf = Platform.select({ ios: 'System', android: 'sans-serif', default: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif' });
 
 export const THEMES = {
+  // « Verre » : widgets iOS sombres. Fond noir, cartes en verre dépoli, coches blanches,
+  // reflets lumineux colorés en bas des cartes (bleu pour la salle, ambre pour l'humeur).
+  glass: {
+    dark: true,
+    glass: true,
+    radius: 28,
+    bg: '#000000',
+    card: '#141416',
+    card2: 'rgba(255,255,255,0.08)',
+    field: 'rgba(255,255,255,0.07)',
+    line: 'rgba(255,255,255,0.10)',
+    track: 'rgba(255,255,255,0.10)',
+    ring: 'rgba(255,255,255,0.38)',
+    tx: '#FFFFFF',
+    mu: 'rgba(235,235,245,0.58)',
+    pri: '#FFFFFF', // coches et boutons actifs blancs
+    priRgb: '255,255,255',
+    onPri: '#000000',
+    acc: '#FFB340', // ambre
+    accRgb: '255,179,64',
+    accSoft: 'rgba(255,255,255,0.08)',
+    accLine: 'rgba(255,255,255,0.22)',
+    lav1: '#1B2B52', // carte mise en avant : verre teinté de bleu nuit
+    lav2: '#11182A',
+    lav3: '#0B0C10',
+    chip: 'rgba(255,255,255,0.10)',
+    shadow: '#000000',
+    bar: 'rgba(30,30,32,0.78)',
+    barLine: 'rgba(255,255,255,0.12)',
+    red: '#FF453A',
+    c3: '#64D2FF',
+    glowA: '10,96,255', // reflet bleu (salle)
+    glowB: '255,149,0', // reflet ambre (humeur)
+    todo: ['#FFD60A', '#FF9F0A', '#30D158', '#64D2FF', '#BF5AF2'],
+    emoji: true,
+    serif: sf,
+  },
   cozy: {
     dark: false,
     bg: '#F2EBDC', // crème
@@ -71,12 +111,18 @@ export const THEMES = {
 };
 
 // Les couleurs du design en cours. Toute l'app lit cet objet ; setTheme le remplit.
-export const C = { ...THEMES.cozy, name: 'cozy' };
+// Valeurs par défaut des options propres au design « Verre ».
+const BASE = { glass: false, radius: 22, glowA: null, glowB: null, todo: null, emoji: false };
+export const C = { ...BASE, ...THEMES.glass, name: 'glass' };
+export const THEME_ORDER = ['glass', 'cozy', 'focus'];
+export const THEME_LABEL = { glass: 'Verre', cozy: 'Cozy', focus: 'Focus' };
 export function setTheme(name) {
-  const t = THEMES[name] ? name : 'cozy';
-  Object.assign(C, THEMES[t], { name: t });
+  const t = THEMES[name] ? name : 'glass';
+  Object.assign(C, BASE, THEMES[t], { name: t });
 }
-export const THEME_KEY = 'newday.theme';
+export const nextTheme = (name) => THEME_ORDER[(THEME_ORDER.indexOf(name) + 1) % THEME_ORDER.length];
+// Nouvelle clé : tout le monde découvre le design « Verre », puis peut changer.
+export const THEME_KEY = 'newday.theme2';
 
 // Intensité de la couleur principale (0 à 1) pour les cases de calendrier et de régularité.
 export const accA = (a) => `rgba(${C.priRgb},${Math.max(0, Math.min(1, a)).toFixed(2)})`;

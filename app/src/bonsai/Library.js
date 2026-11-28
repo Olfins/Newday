@@ -1,4 +1,4 @@
-// La pièce : une bibliothèque dont chaque étagère est une habitude, et le bonsaï sur sa sellette.
+// La pièce : le bonsaï sur sa sellette au centre, entouré de deux bibliothèques dont chaque étagère est une habitude.
 // Les livres arrivent quand l'habitude est faite et repartent quand elle est délaissée.
 import React from 'react';
 import { View } from 'react-native';
@@ -7,7 +7,8 @@ import { Bonsai } from './Bonsai';
 import { palette, shade } from './items';
 
 const VW = 360, VH = 300, FLOOR = 272;
-const BC = { x: 14, w: 196, top: 52 }; // la bibliothèque
+const TOP = 52; // haut des bibliothèques
+const BW = { l: 10, r: 236, w: 114 }; // les deux bibliothèques, à gauche et à droite
 
 // Petit générateur pseudo-aléatoire stable (mêmes livres d'un jour à l'autre).
 const rnd = (seed, i) => {
@@ -101,15 +102,45 @@ function TopObject({ id, x, y, pal }) {
   return null;
 }
 
+// Une bibliothèque : ses étagères (habitudes) et, dans une case vide, l'objet choisi.
+function Bookcase({ x, w, rows, items, pal, obj }) {
+  const inX = x + 7, inW = w - 14;
+  const inTop = TOP + 7, inBot = FLOOR - 13;
+  const board = 5;
+  const compH = (inBot - inTop - (rows - 1) * board) / rows;
+  return (
+    <G>
+      <Rect x={x + 4} y={FLOOR - 2} width={w - 8} height={4} fill="#000" opacity={0.2} />
+      <Rect x={x - 4} y={TOP - 8} width={w + 8} height={8} rx={1.5} fill={pal.edge} />
+      <Rect x={x} y={TOP} width={w} height={FLOOR - TOP} fill={pal.wood} />
+      <Rect x={inX} y={inTop} width={inW} height={inBot - inTop} fill={pal.back} />
+      {[...Array(rows)].map((_, i) => {
+        const y = inTop + i * (compH + board);
+        const s = items[i];
+        return (
+          <G key={i}>
+            {s ? <Books shelf={s} x={inX} y={y} w={inW} h={compH} pal={pal} /> : null}
+            {!s && obj && i === items.length ? <TopObject id={obj} x={inX + inW / 2} y={y + compH} pal={pal} /> : null}
+            <Rect x={inX} y={y + compH} width={inW} height={board} fill={pal.wood} />
+            <Rect x={inX} y={y + compH} width={inW} height={1} fill={pal.edge} />
+          </G>
+        );
+      })}
+      <Rect x={x} y={inBot} width={w} height={FLOOR - inBot} fill={pal.edge} opacity={0.6} />
+    </G>
+  );
+}
+
 export default function Library({ shelves, g, health, setup, style }) {
   const pal = palette(setup);
-  const n = Math.max(1, shelves.length);
-  const inX = BC.x + 8, inW = BC.w - 16;
-  const inTop = BC.top + 8, inBot = FLOOR - 14;
-  const board = 5;
-  const compH = (inBot - inTop - (n - 1) * board) / n;
+  // Le bonsaï au centre, une bibliothèque de chaque côté. La gauche prend les premières habitudes.
+  const half = Math.ceil(shelves.length / 2);
+  const left = shelves.slice(0, half), right = shelves.slice(half);
+  const rows = Math.max(3, half);
   const fallen = health < 0.45 ? Math.round((0.45 - health) * 14) : 0;
-  const tx = 280;
+  const cx = VW / 2;
+  const hasObj = setup.obj && setup.obj !== 'none';
+  const objInShelf = hasObj && right.length < rows;
 
   return (
     <View style={[{ width: '100%', aspectRatio: VW / VH, borderRadius: 18, overflow: 'hidden' }, style]}>
@@ -134,32 +165,20 @@ export default function Library({ shelves, g, health, setup, style }) {
             {[0, 1, 2, 3, 4, 5].map((i) => <Rect key={i} x={8 + i * 60} y={192} width={48} height={66} rx={2} fill="none" stroke={pal.back} strokeWidth={1.4} opacity={0.6} />)}
           </G>
         ) : null}
-        <Ellipse cx={tx} cy={130} rx={120} ry={130} fill="url(#light)" />
+        {/* niche en arc derrière le bonsaï, éclairée */}
+        <Path d={`M${cx - 50} ${FLOOR} L${cx - 50} 70 Q${cx - 50} 26 ${cx} 26 Q${cx + 50} 26 ${cx + 50} 70 L${cx + 50} ${FLOOR} Z`} fill={pal.wall2} opacity={0.9} />
+        <Ellipse cx={cx} cy={140} rx={110} ry={140} fill="url(#light)" />
         {/* sol */}
         <Rect x={0} y={FLOOR} width={VW} height={VH - FLOOR} fill={pal.floor} />
         {[0, 1, 2].map((i) => <Line key={i} x1={0} x2={VW} y1={FLOOR + 8 + i * 8} y2={FLOOR + 8 + i * 8} stroke={pal.floorLine} strokeWidth={0.8} />)}
         <Rect x={0} y={FLOOR - 4} width={VW} height={4} fill={pal.floorLine} />
 
-        {/* bibliothèque */}
-        <Rect x={BC.x + 4} y={FLOOR - 2} width={BC.w - 8} height={4} fill="#000" opacity={0.18} />
-        <Rect x={BC.x - 4} y={BC.top - 8} width={BC.w + 8} height={8} rx={1.5} fill={pal.edge} />
-        <Rect x={BC.x} y={BC.top} width={BC.w} height={FLOOR - BC.top} fill={pal.wood} />
-        <Rect x={inX} y={inTop} width={inW} height={inBot - inTop} fill={pal.back} />
-        {shelves.map((s, i) => {
-          const y = inTop + i * (compH + board);
-          return (
-            <G key={s.id}>
-              <Books shelf={s} x={inX} y={y} w={inW} h={compH} pal={pal} />
-              <Rect x={inX} y={y + compH} width={inW} height={board} fill={pal.wood} />
-              <Rect x={inX} y={y + compH} width={inW} height={1} fill={pal.edge} />
-            </G>
-          );
-        })}
-        <Rect x={BC.x} y={inBot} width={BC.w} height={FLOOR - inBot} fill={pal.edge} opacity={0.6} />
-        <TopObject id={setup.obj} x={BC.x + 40} y={BC.top - 8} pal={pal} />
+        <Bookcase x={BW.l} w={BW.w} rows={rows} items={left} pal={pal} />
+        <Bookcase x={BW.r} w={BW.w} rows={rows} items={right} pal={pal} obj={objInShelf ? setup.obj : null} />
+        {hasObj && !objInShelf ? <TopObject id={setup.obj} x={BW.r + BW.w / 2} y={TOP - 8} pal={pal} /> : null}
 
-        {/* le bonsaï */}
-        <G transform={`translate(${tx} ${FLOOR})`}>
+        {/* le bonsaï, au centre */}
+        <G transform={`translate(${cx} ${FLOOR}) scale(0.9)`}>
           <Bonsai g={g} health={health} pot={setup.pot} stand={setup.stand} dark={pal.dark} fallen={fallen} />
         </G>
       </Svg>

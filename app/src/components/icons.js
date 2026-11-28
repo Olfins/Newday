@@ -1,5 +1,6 @@
 // Petites icônes dessinées en traits (pas d'images).
 import React from 'react';
+import { Text, View } from 'react-native';
 import Svg, { Path, Rect, Circle, Line, Ellipse } from 'react-native-svg';
 import { C } from '../theme';
 
@@ -71,7 +72,15 @@ export const MoodIcon = ({ size = 18, color = C.pri }) => (
 
 // Humeur de 1 (mal) à 5 (super) : un visage rond et sobre, dessiné au trait.
 const HEAD = 'M12 2.6a9.4 9.4 0 1 0 0.01 0z';
+const EMOJI = ['', '😞', '😕', '😐', '🙂', '😊'];
 export function Face({ level, size = 28, on }) {
+  if (C.emoji) {
+    return (
+      <View style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', borderWidth: on ? 1.5 : 0, borderColor: '#FFFFFF' }}>
+        <Text style={{ fontSize: size * (on ? 0.66 : 0.76), lineHeight: size, textAlign: 'center' }}>{EMOJI[level]}</Text>
+      </View>
+    );
+  }
   const f = on ? C.onPri : C.mu;
   const line = { stroke: f, strokeWidth: 1.5, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' };
   const dots = (r = 1.15) => (<><Circle cx="9" cy="12.6" r={r} fill={f} /><Circle cx="15" cy="12.6" r={r} fill={f} /></>);
@@ -108,6 +117,10 @@ export function Face({ level, size = 28, on }) {
 export const MOOD_LABELS = ['', 'Mal', 'Bof', 'Moyen', 'Bien', 'Super'];
 
 // Changer de design : une lune pour passer en mode Focus, un soleil pour revenir en Cozy.
+// Design « Verre » : deux petits widgets arrondis.
+export const GlassIcon = ({ size = 20, color = C.tx }) => (
+  <Svg {...base(size, color)}><Rect x="3.5" y="3.5" width="17" height="7.5" rx="3" /><Rect x="3.5" y="13.5" width="7.5" height="7" rx="3" /><Rect x="13" y="13.5" width="7.5" height="7" rx="3" /></Svg>
+);
 export const SunIcon = ({ size = 20, color = C.tx }) => (
   <Svg {...base(size, color)}><Circle cx="12" cy="12" r="4" /><Path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" /></Svg>
 );
