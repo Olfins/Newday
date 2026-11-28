@@ -116,14 +116,3 @@ export function Face({ level, size = 28, on }) {
 }
 export const MOOD_LABELS = ['', 'Mal', 'Bof', 'Moyen', 'Bien', 'Super'];
 
-// Changer de design : une lune pour passer en mode Focus, un soleil pour revenir en Cozy.
-// Design « Verre » : deux petits widgets arrondis.
-export const GlassIcon = ({ size = 20, color = C.tx }) => (
-  <Svg {...base(size, color)}><Rect x="3.5" y="3.5" width="17" height="7.5" rx="3" /><Rect x="3.5" y="13.5" width="7.5" height="7" rx="3" /><Rect x="13" y="13.5" width="7.5" height="7" rx="3" /></Svg>
-);
-export const SunIcon = ({ size = 20, color = C.tx }) => (
-  <Svg {...base(size, color)}><Circle cx="12" cy="12" r="4" /><Path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" /></Svg>
-);
-export const MoonIcon = ({ size = 20, color = C.tx }) => (
-  <Svg {...base(size, color)}><Path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" /></Svg>
-);

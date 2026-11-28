@@ -59,7 +59,7 @@ export function setupOf(S) {
   return out;
 }
 
-// Couleurs de la pièce selon le design (Cozy clair ou Focus sombre) et les choix.
+// Couleurs de la pièce (design sombre) selon les choix de la boutique.
 export function palette(setup) {
   const dark = C.dark;
   const w = WOODS[setup.wood] || {};

@@ -5,7 +5,8 @@ import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-na
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { C, nextTheme, setTheme, THEME_KEY, THEME_LABEL } from './src/theme';
+import { C, setTheme, THEME_KEY } from './src/theme';
+import PalettePicker, { PaletteDot } from './src/components/PalettePicker';
 import { restyle } from './src/components/ui';
 import { today } from './src/dates';
 import { useStore } from './src/store';
@@ -17,7 +18,7 @@ import QuickAdd from './src/components/QuickAdd';
 import GymModule from './src/gym/GymModule';
 import { CoinRain } from './src/components/Coin';
 import { bank, earnedCoins, needsBank, GAIN_LABEL } from './src/bonsai/coins';
-import { CalIcon, HomeIcon, GlassIcon, MoonIcon, PlusIcon, SunIcon, TreeIcon, WeekIcon } from './src/components/icons';
+import { CalIcon, HomeIcon, PlusIcon, TreeIcon, WeekIcon } from './src/components/icons';
 
 // Quatre onglets : Jour (aujourd'hui), Semaine, Calendrier (avec les progrès), Bonsaï.
 const TABS = [
@@ -45,16 +46,16 @@ function Main() {
   const [cd, setCd] = useState(T); // jour sélectionné
   const [add, setAdd] = useState(null); // type d'ajout ouvert avec le bouton +
   const [gym, setGym] = useState(false); // module Salle ouvert
-  // Design choisi : « glass » (widgets iOS), « cozy » (crème) ou « focus » (dark academia). Mémorisé sur l'appareil.
+  // Palette choisie (Nuit, Graphite, Émeraude, Lavande, Rubis), mémorisée sur l'appareil.
   const [theme, setThemeName] = useState(null);
+  const [picker, setPicker] = useState(false);
   useEffect(() => {
-    AsyncStorage.getItem(THEME_KEY).then((v) => applyTheme(v || 'glass')).catch(() => applyTheme('glass'));
+    AsyncStorage.getItem(THEME_KEY).then((v) => applyTheme(v || 'nuit')).catch(() => applyTheme('nuit'));
   }, []);
   const applyTheme = (name) => { setTheme(name); restyle(); setThemeName(C.name); };
-  const toggleTheme = () => {
-    const next = nextTheme(C.name);
-    applyTheme(next);
-    AsyncStorage.setItem(THEME_KEY, next).catch(() => {});
+  const choosePalette = (name) => {
+    applyTheme(name);
+    AsyncStorage.setItem(THEME_KEY, name).catch(() => {});
   };
   // Sur le web, la couleur du fond de la page et de la barre du navigateur suit le design.
   useEffect(() => {
@@ -120,11 +121,11 @@ function Main() {
           <View style={{ flex: 1 }}>
             <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 32, fontWeight: '700', letterSpacing: -0.3 }}>{title}</Text>
           </View>
-          {/* Changer de design : Verre, Cozy, puis Focus. */}
-          <Pressable onPress={toggleTheme} accessibilityRole="button" hitSlop={6}
-            accessibilityLabel={'Passer au design ' + THEME_LABEL[nextTheme(C.name)]}
+          {/* Choisir sa palette de couleurs. */}
+          <Pressable onPress={() => setPicker(true)} accessibilityRole="button" hitSlop={6}
+            accessibilityLabel="Choisir les couleurs"
             style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: C.card, borderWidth: 1, borderColor: C.line, opacity: pressed ? 0.7 : 1 })}>
-            {nextTheme(C.name) === 'cozy' ? <SunIcon size={20} color={C.pri} /> : nextTheme(C.name) === 'focus' ? <MoonIcon size={19} color={C.pri} /> : <GlassIcon size={20} color={C.pri} />}
+            <PaletteDot name={C.name} size={20} />
           </Pressable>
           {/* Ajouter (tâche, événement, examen, habitude) : en haut, pas dans le menu. */}
           <Pressable onPress={() => setAdd(addKind)} accessibilityRole="button" accessibilityLabel="Ajouter" hitSlop={6}
@@ -171,6 +172,7 @@ function Main() {
 
       <GymModule visible={gym} onClose={() => setGym(false)} S={S} update={update} T={T} />
       {rain ? <CoinRain key={rain.id} amount={rain.n} label={rain.label} onDone={() => setRain(null)} /> : null}
+      <PalettePicker visible={picker} current={C.name} onPick={choosePalette} onClose={() => setPicker(false)} />
       <QuickAdd visible={!!add} initial={add || 'todo'} onClose={() => setAdd(null)} update={update} k={addDay} T={T} />
     </View>
   );

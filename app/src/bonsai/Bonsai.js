@@ -50,22 +50,50 @@ function Pad({ x, y, R, s, col }) {
   );
 }
 
-export function Tree({ g = 0.5, health = 0.7, potW }) {
+// Une branche effilée (forme pleine, plus large à la base).
+function limb(x0, y0, cx, cy, x1, y1, w0, w1) {
+  const n = 8, L = [], R = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n, u = 1 - t;
+    const x = u * u * x0 + 2 * u * t * cx + t * t * x1;
+    const y = u * u * y0 + 2 * u * t * cy + t * t * y1;
+    const dx = 2 * u * (cx - x0) + 2 * t * (x1 - cx), dy = 2 * u * (cy - y0) + 2 * t * (y1 - cy);
+    const l = Math.hypot(dx, dy) || 1, w = (w0 + (w1 - w0) * t) / 2;
+    L.push([x - (dy / l) * w, y + (dx / l) * w]);
+    R.push([x + (dy / l) * w, y - (dx / l) * w]);
+  }
+  return 'M' + L.map((q) => f1(q[0]) + ' ' + f1(q[1])).join(' L') + ' L' + R.reverse().map((q) => f1(q[0]) + ' ' + f1(q[1])).join(' L') + ' Z';
+}
+
+// Le tronc part bien droit de la terre, puis dessine une courbe en S typique des bonsaïs.
+function trunkAt(H, t) {
+  const P = [[0, 0], [0.04 * H, -0.36 * H], [-0.4 * H, -0.56 * H], [0.04 * H, -H]];
+  const u = 1 - t;
+  const a = u * u * u, b = 3 * u * u * t, c = 3 * u * t * t, d = t * t * t;
+  const x = a * P[0][0] + b * P[1][0] + c * P[2][0] + d * P[3][0];
+  const y = a * P[0][1] + b * P[1][1] + c * P[2][1] + d * P[3][1];
+  const dx = 3 * u * u * (P[1][0] - P[0][0]) + 6 * u * t * (P[2][0] - P[1][0]) + 3 * t * t * (P[3][0] - P[2][0]);
+  const dy = 3 * u * u * (P[1][1] - P[0][1]) + 6 * u * t * (P[2][1] - P[1][1]) + 3 * t * t * (P[3][1] - P[2][1]);
+  const L = Math.hypot(dx, dy) || 1;
+  return { x, y, nx: -dy / L, ny: dx / L };
+}
+
+export function Tree({ g = 0.5, health = 0.7 }) {
   const h = Math.max(0, Math.min(1, health));
   const col = {
-    main: mixHex('#9A9550', '#3F6B3F', h),
-    shade: mixHex('#77733C', '#2C4E30', h),
-    light: mixHex('#B8B26C', '#618C50', h),
+    main: mixHex('#9A9550', '#41703F', h),
+    shade: mixHex('#6E6A37', '#2A4B2E', h),
+    light: mixHex('#B8B26C', '#6A9654', h),
   };
-  const bark = '#6A4E3B', barkDark = '#4C3729', barkLight = '#8A6C53';
+  const bark = '#6E5240', barkDark = '#4A3628', barkLight = '#957760';
 
-  // Graine germée : une tige et deux feuilles.
+  // Graine germée : une tige et deux feuilles, plantées dans la mousse.
   if (g < 0.1) {
     const H = 10 + 60 * g;
     const leaf = 4 + 40 * g;
     return (
       <G>
-        <Path d={`M0 0 Q${-H * 0.15} ${-H * 0.5} 0 ${-H}`} stroke="#5C7A3E" strokeWidth={1.6 + 6 * g} fill="none" strokeLinecap="round" />
+        <Path d={`M0 2 Q${-H * 0.15} ${-H * 0.5} 0 ${-H}`} stroke="#5C7A3E" strokeWidth={1.6 + 6 * g} fill="none" strokeLinecap="round" />
         <Ellipse cx={-leaf * 0.7} cy={-H - 1} rx={leaf} ry={leaf * 0.42} fill={col.main} transform={`rotate(-24 ${-leaf * 0.7} ${-H - 1})`} />
         <Ellipse cx={leaf * 0.7} cy={-H - 2} rx={leaf * 0.9} ry={leaf * 0.38} fill={col.light} transform={`rotate(22 ${leaf * 0.7} ${-H - 2})`} />
       </G>
@@ -73,53 +101,69 @@ export function Tree({ g = 0.5, health = 0.7, potW }) {
   }
 
   const H = 22 + 118 * Math.pow(g, 0.85);
-  const w0 = 3 + 17 * g;
-  const N = 16;
-  const L = [], Rr = [];
+  const w0 = 4 + 16 * g;
+  const N = 18, Ls = [], Rs = [];
   for (let i = 0; i <= N; i++) {
-    const t = i / N, p = bez(H, t);
-    let w = w0 * (1 - 0.74 * t) + 1.2;
-    w *= 1 + 0.7 * Math.pow(1 - t, 7); // pied évasé
-    L.push([p.x - (p.nx * w) / 2, p.y - (p.ny * w) / 2]);
-    Rr.push([p.x + (p.nx * w) / 2, p.y + (p.ny * w) / 2]);
+    const t = i / N, p = trunkAt(H, t);
+    let w = w0 * (1 - 0.72 * t) + 1.4;
+    w *= 1 + 0.55 * Math.pow(1 - t, 6); // pied légèrement évasé
+    Ls.push([p.x - (p.nx * w) / 2, p.y - (p.ny * w) / 2]);
+    Rs.push([p.x + (p.nx * w) / 2, p.y + (p.ny * w) / 2]);
   }
-  const trunk = 'M' + L.map((q) => f1(q[0]) + ' ' + f1(q[1])).join(' L') + ' L' + Rr.reverse().map((q) => f1(q[0]) + ' ' + f1(q[1])).join(' L') + ' Z';
-  const crease = 'M' + [0.08, 0.25, 0.42, 0.6].map((t) => { const p = bez(H, t); return f1(p.x + p.nx * w0 * 0.12) + ' ' + f1(p.y); }).join(' L');
+  // Le tronc descend un peu sous la terre : il est vraiment planté dans le pot.
+  const base = w0 * 1.55 / 2;
+  const trunk = `M${f1(-base)} 3 L` + Ls.map((q) => f1(q[0]) + ' ' + f1(q[1])).join(' L') + ' L' + [...Rs].reverse().map((q) => f1(q[0]) + ' ' + f1(q[1])).join(' L') + ` L${f1(base)} 3 Z`;
+  const side = (k, f) => 'M' + [0.06, 0.2, 0.36, 0.52, 0.66].map((t) => { const p = trunkAt(H, t); const w = w0 * (1 - 0.72 * t) + 1.4; return f1(p.x + p.nx * w * f) + ' ' + f1(p.y + p.ny * w * f); }).join(' L');
 
   const branches = BRANCHES.filter((b) => g >= b.g).map((b) => {
     const grow = 0.45 + 0.55 * Math.min(1, (g - b.g) / 0.18);
-    const p = bez(H, b.t);
+    const p = trunkAt(H, b.t);
     const len = b.l * H * 0.6 * grow;
-    const ex = p.x + b.s * len, ey = p.y - b.r * H - len * 0.12;
-    const mx = p.x + b.s * len * 0.5, my = p.y - len * 0.02 + 4;
-    const sw = Math.max(1.4, w0 * 0.34 * (1 - b.t) + 1);
+    const ex = p.x + b.s * len, ey = p.y - b.r * H - len * 0.1;
+    const mx = p.x + b.s * len * 0.45, my = p.y + 3;
+    const wTrunk = w0 * (1 - 0.72 * b.t) + 1.4;
     const R = (8 + 15 * g) * b.p * (0.55 + 0.45 * grow) * (0.8 + 0.2 * h);
-    return { b, d: `M${f1(p.x)} ${f1(p.y)} Q${f1(mx)} ${f1(my)} ${f1(ex)} ${f1(ey)}`, sw, ex, ey, R };
+    return { b, d: limb(p.x, p.y, mx, my, ex, ey, Math.max(1.6, wTrunk * 0.55), 1.1), ex, ey, R };
   });
-  const top = bez(H, 1);
+  const top = trunkAt(H, 1);
   const apexR = (9 + 14 * g) * (0.8 + 0.2 * h);
 
-  // Racines visibles (nebari) quand l'arbre a de l'âge.
-  const roots = g > 0.35 ? [
-    `M${f1(-w0 * 0.4)} 0 Q${f1(-w0 * 1.1)} 1 ${f1(-w0 * 1.6)} 3`,
-    `M${f1(w0 * 0.4)} 0 Q${f1(w0 * 1.2)} 0.5 ${f1(w0 * 1.7)} 2.5`,
+  // Racines visibles (nebari) qui s'enfoncent dans la mousse.
+  const roots = g > 0.3 ? [
+    limb(-base * 0.5, 0, -base * 1.2, 0.5, -base * 2.1, 2.5, 3 + 3 * g, 1),
+    limb(base * 0.5, 0, base * 1.3, 0.2, base * 2.2, 2.2, 3 + 3 * g, 1),
   ] : [];
 
   return (
     <G>
-      {roots.map((d, i) => <Path key={i} d={d} stroke={barkDark} strokeWidth={2 + 3 * g} fill="none" strokeLinecap="round" />)}
-      {branches.map(({ b, d, sw }) => <Path key={'b' + b.t} d={d} stroke={bark} strokeWidth={sw} fill="none" strokeLinecap="round" />)}
+      {branches.map(({ b, d }) => <Path key={'b' + b.t} d={d} fill={bark} />)}
+      {roots.map((d, i) => <Path key={'r' + i} d={d} fill={barkDark} />)}
       <Path d={trunk} fill={bark} />
-      <Path d={crease} stroke={barkDark} strokeWidth={Math.max(0.8, w0 * 0.12)} fill="none" strokeLinecap="round" opacity={0.7} />
-      <Path d={'M' + [0.05, 0.2, 0.38].map((t) => { const p = bez(H, t); return f1(p.x - p.nx * w0 * 0.28) + ' ' + f1(p.y); }).join(' L')} stroke={barkLight} strokeWidth={Math.max(0.6, w0 * 0.08)} fill="none" strokeLinecap="round" opacity={0.6} />
+      <Path d={side(0, 0.32)} stroke={barkDark} strokeWidth={Math.max(0.8, w0 * 0.14)} fill="none" strokeLinecap="round" opacity={0.75} />
+      <Path d={side(0, -0.3)} stroke={barkLight} strokeWidth={Math.max(0.6, w0 * 0.09)} fill="none" strokeLinecap="round" opacity={0.7} />
       {branches.map(({ b, ex, ey, R }) => <Pad key={'p' + b.t} x={ex} y={ey} R={R} s={b.s} col={col} />)}
       <Pad x={top.x} y={top.y - apexR * 0.15} R={apexR} s={1} col={col} />
     </G>
   );
 }
 
+// La mousse posée sur la terre, devant le pied du tronc.
+export function Moss({ g = 0.5 }) {
+  const { w } = potSize(g);
+  const b = (4 + 16 * g) * 0.9;
+  return (
+    <G>
+      <Ellipse cx={-b * 1.3} cy={0.6} rx={b * 1.1 + 3} ry={2.2} fill="#5A7642" />
+      <Ellipse cx={b * 1.25} cy={0.8} rx={b + 3} ry={2} fill="#4F6B3B" />
+      <Ellipse cx={0} cy={1.4} rx={b * 1.6 + 2} ry={1.8} fill="#62804A" />
+      <Ellipse cx={-w * 0.3} cy={0.4} rx={w * 0.1} ry={1.4} fill="#6C8A50" opacity={0.9} />
+      <Ellipse cx={w * 0.3} cy={0.5} rx={w * 0.08} ry={1.3} fill="#5A7642" opacity={0.9} />
+    </G>
+  );
+}
+
 // Largeur du pot selon la croissance (un bonsaï plus grand est rempoté dans un pot plus grand).
-export const potSize = (g) => ({ w: 48 + 46 * g, h: 15 + 9 * g });
+export const potSize = (g) => ({ w: 58 + 56 * g, h: 16 + 11 * g });
 
 export function Pot({ id = 'terre', g = 0.5 }) {
   const P = POTS[id] || POTS.terre;
@@ -151,11 +195,16 @@ export function Pot({ id = 'terre', g = 0.5 }) {
       ) : null}
       {/* bord du pot et terre couverte de mousse */}
       <Rect x={x - 2} y={-1} width={w + 4} height={4} rx={1.5} fill={P.rim} />
-      <Ellipse cx={0} cy={-0.5} rx={w / 2 - 3} ry={2.2} fill="#4A3B2C" />
-      <Ellipse cx={-w * 0.12} cy={-1.2} rx={w * 0.22} ry={1.6} fill="#5E7A44" opacity={0.9} />
-      <Ellipse cx={w * 0.2} cy={-1} rx={w * 0.14} ry={1.3} fill="#6F8A4E" opacity={0.85} />
+      <Ellipse cx={0} cy={0.5} rx={w / 2 - 3} ry={2.6} fill="#3E3126" />
     </G>
   );
+}
+
+// Le bord avant du pot, dessiné devant le pied du tronc.
+export function PotLip({ id = 'terre', g = 0.5 }) {
+  const P = POTS[id] || POTS.terre;
+  const { w } = potSize(g);
+  return <Rect x={-w / 2 - 2} y={2} width={w + 4} height={2.4} rx={1} fill={P.rim} />;
 }
 
 // La sellette : de y = 0 (dessus) jusqu'à y = h (le sol).
@@ -231,8 +280,10 @@ export function Bonsai({ g, health, pot, stand, dark, fallen = 0 }) {
         <Ellipse key={i} cx={(i % 2 ? 1 : -1) * (ps.w * 0.55 + 4 + i * 3)} cy={-sh - 1} rx={2.4} ry={1.1} fill="#A89A5A" transform={`rotate(${i * 37 - 30} ${(i % 2 ? 1 : -1) * (ps.w * 0.55 + 4 + i * 3)} ${-sh - 1})`} />
       ))}
       <G transform={`translate(0 ${soil})`}>
-        <Tree g={g} health={health} />
         <Pot id={pot} g={g} />
+        <Tree g={g} health={health} />
+        <PotLip id={pot} g={g} />
+        <Moss g={g} />
       </G>
     </G>
   );
@@ -241,7 +292,7 @@ export function Bonsai({ g, health, pot, stand, dark, fallen = 0 }) {
 // Le bonsaï seul, dans son propre cadre (aperçus de la boutique, jour off).
 export function TreeArt({ g = 0.55, health = 0.85, pot = 'terre', stand = 'table', size = 120, dark }) {
   const sh = (STANDS[stand] || STANDS.table).h;
-  const H = 30 + 118 * Math.pow(g, 0.85) + sh + 30;
+  const H = 30 + 118 * Math.pow(g, 0.85) + sh + 34;
   const W = Math.max(H * 0.95, 140);
   return (
     <Svg width={size} height={size * (H / W)} viewBox={`${-W / 2} ${-H} ${W} ${H + 6}`}>
