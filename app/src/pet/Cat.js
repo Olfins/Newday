@@ -5,13 +5,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, PanResponder, Text, Vibration, View } from 'react-native';
 import Svg, { Circle, ClipPath, Defs, Ellipse, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
 import { lookOf, palette, shade } from './looks';
+import Headwear from './Headwear';
+import { Desk, Hold, Zzz } from './scenes';
+import { Polygon, pts, toward } from './shapes';
+import { MonsterDrawing } from './Monster';
+import { SPECIES, isStarter } from './species';
 
-const pts = (a) => a.map((p) => p.map((v) => +v.toFixed(2)).join(',')).join(' ');
-// Les polygones sont dessinés comme des tracés (plus simple et identique partout).
 // Attention : pas de « key » sur les groupes de la tête. Sur le web, ils laissaient
 // les anciennes oreilles à l'écran quand le chat changeait de taille.
-const Polygon = ({ points, ...rest }) => <Path d={'M' + points.split(' ').join(' L') + ' Z'} {...rest} />;
-const toward = (p, c, f) => [p[0] + (c[0] - p[0]) * f, p[1] + (c[1] - p[1]) * f];
 
 // look : l'apparence choisie ; kind : ancien choix ('noir' ou 'roux'), utilisé si look manque.
 // scene : null (normal), 'work' (au PC), ou une pause : 'coffee', 'walk', 'snack', 'water'.
@@ -93,99 +94,6 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
   );
   const bodyPath = `M${cx - bw / 2} ${base} L${cx - bw / 2} ${top + 18} Q${cx - bw / 2} ${top} ${cx - bw / 2 + 18} ${top} L${cx + bw / 2 - 18} ${top} Q${cx + bw / 2} ${top} ${cx + bw / 2} ${top + 18} L${cx + bw / 2} ${base} Z`;
 
-  // Accessoire : lunettes ou chapeau. Les lunettes remplacent celles du PDG.
-  const glasses = L.acc === 'lunettes' || (stage === 3 && L.acc !== 'soleil' && L.acc !== 'monocle');
-  const hat = () => {
-    switch (L.acc) {
-      case 'feutre':
-        return (
-          <G>
-            <Path d={`M${cx - hr * 0.5} ${hy - hr * 0.8} L${cx - hr * 0.4} ${hy - hr * 1.36} Q${cx} ${hy - hr * 1.18} ${cx + hr * 0.4} ${hy - hr * 1.36} L${cx + hr * 0.5} ${hy - hr * 0.8} Z`} fill={P.dark ? '#8C8070' : '#3D3B4A'} />
-            <Rect x={cx - hr * 0.49} y={hy - hr * 0.97} width={hr * 0.98} height={hr * 0.13} fill={P.accent} />
-            <Ellipse cx={cx} cy={hy - hr * 0.8} rx={hr * 0.88} ry={hr * 0.14} fill={P.dark ? '#73695C' : '#2E2C3A'} />
-          </G>
-        );
-      case 'beret':
-        return (
-          <G>
-            <Ellipse cx={cx + hr * 0.1} cy={hy - hr * 0.8} rx={hr * 0.62} ry={hr * 0.24} fill={P.accent} />
-            <Path d={`M${cx - hr * 0.42} ${hy - hr * 0.72} Q${cx} ${hy - hr * 0.62} ${cx + hr * 0.5} ${hy - hr * 0.7}`} stroke={P.accent} strokeWidth="4" strokeLinecap="round" fill="none" />
-            <Line x1={cx + hr * 0.1} y1={hy - hr * 1.03} x2={cx + hr * 0.16} y2={hy - hr * 1.13} stroke={P.accent} strokeWidth="3" strokeLinecap="round" />
-          </G>
-        );
-      case 'casquette':
-        return (
-          <G>
-            <Ellipse cx={cx + hr * 0.42} cy={hy - hr * 0.7} rx={hr * 0.42} ry={hr * 0.1} fill={P.suitD} />
-            <Path d={`M${cx - hr * 0.56} ${hy - hr * 0.68} Q${cx - hr * 0.52} ${hy - hr * 1.22} ${cx} ${hy - hr * 1.22} Q${cx + hr * 0.52} ${hy - hr * 1.22} ${cx + hr * 0.56} ${hy - hr * 0.68} Z`} fill={P.suit} />
-            <Circle cx={cx} cy={hy - hr * 1.2} r="2.6" fill={P.accent} />
-            <Line x1={cx} y1={hy - hr * 1.18} x2={cx} y2={hy - hr * 0.72} stroke={P.suitD} strokeWidth="1.2" />
-          </G>
-        );
-      case 'couronne': {
-        const y0 = hy - hr * 0.76, w = hr * 0.92;
-        const peaks = [[cx - w / 2, y0 - hr * 0.44], [cx, y0 - hr * 0.52], [cx + w / 2, y0 - hr * 0.44]];
-        return (
-          <G>
-            <Polygon points={pts([[cx - w / 2, y0], peaks[0], [cx - w / 4, y0 - hr * 0.22], peaks[1], [cx + w / 4, y0 - hr * 0.22], peaks[2], [cx + w / 2, y0]])}
-              fill="#E8B83A" stroke="#B8862F" strokeWidth="1.5" strokeLinejoin="round" />
-            <Rect x={cx - w / 2} y={y0 - hr * 0.12} width={w} height={hr * 0.12} fill="#D9A62E" />
-            {peaks.map(([x, y], i) => <Circle key={i} cx={x} cy={y} r="2.6" fill="#F6D77A" />)}
-            <Circle cx={cx} cy={y0 - hr * 0.2} r={hr * 0.08} fill={P.accent} />
-            <Circle cx={cx - w * 0.3} cy={y0 - hr * 0.08} r={hr * 0.045} fill="#FFFFFF" opacity="0.9" />
-            <Circle cx={cx + w * 0.3} cy={y0 - hr * 0.08} r={hr * 0.045} fill="#FFFFFF" opacity="0.9" />
-          </G>
-        );
-      }
-      case 'haut':
-        return (
-          <G>
-            <Rect x={cx - hr * 0.42} y={hy - hr * 1.62} width={hr * 0.84} height={hr * 0.84} rx="3" fill="#22222A" />
-            <Rect x={cx - hr * 0.42} y={hy - hr * 0.98} width={hr * 0.84} height={hr * 0.15} fill={P.accent} />
-            <Ellipse cx={cx} cy={hy - hr * 0.8} rx={hr * 0.76} ry={hr * 0.13} fill="#17171D" />
-            <Line x1={cx - hr * 0.3} y1={hy - hr * 1.52} x2={cx - hr * 0.3} y2={hy - hr * 1.08} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.18" />
-          </G>
-        );
-      case 'bonnet': {
-        const col = P.accent, colD = shade(P.accent, 0.8);
-        return (
-          <G>
-            <Path d={`M${cx - hr * 0.8} ${hy - hr * 0.5} Q${cx - hr * 0.8} ${hy - hr * 1.28} ${cx} ${hy - hr * 1.28} Q${cx + hr * 0.8} ${hy - hr * 1.28} ${cx + hr * 0.8} ${hy - hr * 0.5} Z`} fill={col} />
-            <G stroke={colD} strokeWidth="1.6" strokeLinecap="round">
-              {[-0.45, -0.15, 0.15, 0.45].map((d) => <Line key={d} x1={cx + hr * d} y1={hy - hr * 0.66} x2={cx + hr * d * 0.8} y2={hy - hr * 1.12} />)}
-            </G>
-            <Rect x={cx - hr * 0.86} y={hy - hr * 0.7} width={hr * 1.72} height={hr * 0.26} rx={hr * 0.12} fill={colD} />
-            <Circle cx={cx} cy={hy - hr * 1.32} r={hr * 0.17} fill="#FFFFFF" />
-          </G>
-        );
-      }
-      case 'casque':
-        return (
-          <G>
-            <Path d={`M${cx - hr * 0.94} ${hy - hr * 0.1} Q${cx - hr * 0.98} ${hy - hr * 1.32} ${cx} ${hy - hr * 1.3} Q${cx + hr * 0.98} ${hy - hr * 1.32} ${cx + hr * 0.94} ${hy - hr * 0.1}`}
-              stroke="#2B2B35" strokeWidth={hr * 0.13} strokeLinecap="round" fill="none" />
-            {[-1, 1].map((d) => (
-              <G key={d}>
-                <Rect x={cx + d * hr * 0.95 - hr * 0.17} y={hy - hr * 0.36} width={hr * 0.34} height={hr * 0.56} rx={hr * 0.14} fill={P.accent} />
-                <Rect x={cx + d * hr * 0.95 - hr * 0.07} y={hy - hr * 0.28} width={hr * 0.14} height={hr * 0.4} rx={hr * 0.07} fill={shade(P.accent, 0.75)} />
-              </G>
-            ))}
-          </G>
-        );
-      case 'noeud': {
-        const bx = cx + hr * 0.5, by = hy - hr * 0.84;
-        return (
-          <G fill={P.accent}>
-            <Path d={`M${bx} ${by} L${bx - hr * 0.32} ${by - hr * 0.2} L${bx - hr * 0.3} ${by + hr * 0.2} Z`} strokeLinejoin="round" stroke={P.accent} strokeWidth="2" />
-            <Path d={`M${bx} ${by} L${bx + hr * 0.32} ${by - hr * 0.2} L${bx + hr * 0.3} ${by + hr * 0.2} Z`} strokeLinejoin="round" stroke={P.accent} strokeWidth="2" />
-            <Circle cx={bx} cy={by} r={hr * 0.1} fill={shade(P.accent, 0.8)} />
-          </G>
-        );
-      }
-      default:
-        return null;
-    }
-  };
 
   return (
     <Svg width={size} height={size * 1.1} viewBox="0 0 200 220">
@@ -347,48 +255,13 @@ export function CatDrawing({ look, kind = 'noir', stage = 0, mood: mood0 = 'happ
         )))}
       </G>
       {sleeping ? <Zzz x={cx + hr * 0.75} y={hy - hr * 0.55} t={t} /> : null}
-      {glasses ? (
-        <G stroke="#17171D" strokeWidth="2.5" fill="none">
-          <Circle cx={cx - hr * 0.4} cy={hy - hr * 0.04} r={hr * 0.24} />
-          <Circle cx={cx + hr * 0.4} cy={hy - hr * 0.04} r={hr * 0.24} />
-          <Line x1={cx - hr * 0.16} y1={hy - hr * 0.06} x2={cx + hr * 0.16} y2={hy - hr * 0.06} />
-        </G>
-      ) : null}
-      {L.acc === 'soleil' ? (
-        <G>
-          <Rect x={cx - hr * 0.68} y={hy - hr * 0.2} width={hr * 0.56} height={hr * 0.34} rx={hr * 0.12} fill="#17171D" />
-          <Rect x={cx + hr * 0.12} y={hy - hr * 0.2} width={hr * 0.56} height={hr * 0.34} rx={hr * 0.12} fill="#17171D" />
-          <Line x1={cx - hr * 0.14} y1={hy - hr * 0.1} x2={cx + hr * 0.14} y2={hy - hr * 0.1} stroke="#17171D" strokeWidth="2.5" />
-          <Line x1={cx - hr * 0.56} y1={hy - hr * 0.1} x2={cx - hr * 0.44} y2={hy - hr * 0.02} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
-          <Line x1={cx + hr * 0.24} y1={hy - hr * 0.1} x2={cx + hr * 0.36} y2={hy - hr * 0.02} stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
-        </G>
-      ) : null}
-      {L.acc === 'monocle' ? (
-        <G>
-          <Circle cx={cx + hr * 0.4} cy={hy - hr * 0.04} r={hr * 0.27} stroke="#C9A23A" strokeWidth="2.6" fill="rgba(255,255,255,0.16)" />
-          <Path d={`M${cx + hr * 0.6} ${hy + hr * 0.16} Q${cx + hr * 0.86} ${hy + hr * 0.6} ${cx + hr * 0.56} ${hy + hr * 0.98}`} stroke="#C9A23A" strokeWidth="1.3" fill="none" />
-        </G>
-      ) : null}
-      {hat()}
+      <Headwear L={L} P={P} cx={cx} hy={hy} hr={hr} stage={stage} boss={stage === 3} />
       {scene === 'work' ? <Desk P={P} cx={cx} bw={bw} top={top} t={t} /> : null}
       {holds ? <Hold P={P} scene={scene} cx={cx} bw={bw} top={top} bh={bh} hr={hr} my={my} sip={sip} t={t} /> : null}
     </Svg>
   );
 }
 
-// Les « z » qui montent quand il dort.
-function Zzz({ x, y, t }) {
-  return (
-    <G>
-      {[0, 1, 2].map((i) => {
-        const o = (t * 0.32 + i / 3) % 1;
-        return (
-          <SvgText key={i} x={x + o * 22} y={y - o * 46} fontSize={11 + o * 11} fontWeight="700" fill="#5E6B8C" opacity={o < 0.15 ? o / 0.15 : 1 - (o - 0.15) / 0.85}>z</SvgText>
-        );
-      })}
-    </G>
-  );
-}
 
 // Rayures du chat tigré, posées en travers de la queue (même courbe que la queue).
 function TailStripes({ x0, y0, color }) {
@@ -411,84 +284,9 @@ function TailStripes({ x0, y0, color }) {
   );
 }
 
-// Le bureau avec l'ordinateur portable ; les pattes tapent au clavier.
-function Desk({ P, cx, bw, top, t }) {
-  const lift = (ph) => Math.max(0, Math.sin(t * 13 + ph)) * 5;
-  const lx = cx - 48, rx = cx + 48, py = 190;
-  const l1 = lift(0), l2 = lift(Math.PI);
-  return (
-    <G>
-      <Line x1={cx - bw / 2 + 8} y1={top + 18} x2={lx} y2={py - l1} stroke={P.arm} strokeWidth="12" strokeLinecap="round" />
-      <Line x1={cx + bw / 2 - 8} y1={top + 18} x2={rx} y2={py - l2} stroke={P.arm} strokeWidth="12" strokeLinecap="round" />
-      <Rect x="6" y="196" width="188" height="10" rx="4" fill="#C9AE8E" />
-      <Rect x="6" y="204" width="188" height="6" rx="3" fill="#B39674" />
-      <Rect x={cx - 38} y="150" width="76" height="46" rx="6" fill="#E4E3EC" stroke="#C9C8D6" strokeWidth="2" />
-      <Circle cx={cx} cy="173" r="5" fill="#6C5FD4" opacity={0.6 + 0.4 * Math.abs(Math.sin(t * 2))} />
-      <Rect x={cx - 44} y="193" width="88" height="5" rx="2.5" fill="#B9B8C8" />
-      <Ellipse cx={lx} cy={py - l1} rx="9" ry="6" fill={P.paw} />
-      <Ellipse cx={rx} cy={py - l2} rx="9" ry="6" fill={P.paw} />
-      {/* Petits traits de frappe */}
-      {l1 > 3 ? <Path d={`M${lx - 12} ${py - 12} l-4 -4 M${lx - 4} ${py - 15} l0 -5`} stroke="#8A8998" strokeWidth="1.6" strokeLinecap="round" /> : null}
-      {l2 > 3 ? <Path d={`M${rx + 12} ${py - 12} l4 -4 M${rx + 4} ${py - 15} l0 -5`} stroke="#8A8998" strokeWidth="1.6" strokeLinecap="round" /> : null}
-      {/* Une petite plante sur le bureau */}
-      <Rect x="176" y="182" width="14" height="14" rx="3" fill="#F0EEF8" stroke="#D5D2E8" strokeWidth="1.5" />
-      <Path d="M183 182 C178 174 174 172 172 168 M183 182 C184 172 188 168 192 165 M183 182 C182 176 183 172 183 168" stroke="#7FB77E" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-    </G>
-  );
-}
-
-// La patte qui tient un café, un verre d'eau ou un biscuit.
-function Hold({ P, scene, cx, bw, top, bh, hr, my, sip, t }) {
-  const rest = [cx + bw / 2 + 4, top + bh * 0.55];
-  const mouthP = [cx + hr * 0.24, my + 8];
-  const hx = rest[0] + (mouthP[0] - rest[0]) * sip;
-  const hy = rest[1] + (mouthP[1] - rest[1]) * sip;
-  const tilt = scene === 'snack' ? 0 : -sip * 28;
-  let item = null;
-  if (scene === 'coffee') {
-    const steam = (k) => {
-      const o = ((t * 0.8 + k * 0.5) % 1);
-      return <Path key={k} d={`M${hx - 3 + k * 6} ${hy - 12 - o * 14} q3 -4 0 -8 q-3 -4 0 -8`} stroke="#B5B3C6" strokeWidth="2" strokeLinecap="round" fill="none" opacity={1 - o} />;
-    };
-    item = (
-      <G>
-        {sip < 0.5 ? [0, 1].map(steam) : null}
-        <G transform={`rotate(${tilt.toFixed(1)} ${hx} ${hy})`}>
-          <Path d={`M${hx + 8} ${hy - 4} q8 0 8 6 q0 6 -8 6`} stroke="#FFFFFF" strokeWidth="3" fill="none" />
-          <Rect x={hx - 9} y={hy - 9} width="18" height="20" rx="4" fill="#FFFFFF" stroke="#D5D2E8" strokeWidth="1.5" />
-          <Rect x={hx - 9} y={hy - 2} width="18" height="5" fill="#6C5FD4" />
-        </G>
-      </G>
-    );
-  } else if (scene === 'water') {
-    item = (
-      <G transform={`rotate(${tilt.toFixed(1)} ${hx} ${hy})`}>
-        <Polygon points={pts([[hx - 9, hy - 12], [hx + 9, hy - 12], [hx + 7, hy + 12], [hx - 7, hy + 12]])} fill="rgba(255,255,255,0.7)" stroke="#9CC7F0" strokeWidth="1.8" />
-        <Polygon points={pts([[hx - 8, hy - 2], [hx + 8, hy - 2], [hx + 7, hy + 11], [hx - 7, hy + 11]])} fill="#9CC7F0" opacity="0.8" />
-      </G>
-    );
-  } else {
-    const crumb = (k) => {
-      const o = ((t * 1.2 + k * 0.33) % 1);
-      return <Circle key={k} cx={hx - 6 + k * 6} cy={hy + 8 + o * 30} r="1.6" fill="#C98A4B" opacity={1 - o} />;
-    };
-    item = (
-      <G>
-        {sip > 0.6 ? [0, 1, 2].map(crumb) : null}
-        <Circle cx={hx} cy={hy - 4} r="10" fill="#D9A066" />
-        {[[-4, -7], [3, -2], [-2, 1], [5, -9]].map(([a, b], i) => <Circle key={i} cx={hx + a} cy={hy + b} r="1.6" fill="#6B4A2B" />)}
-      </G>
-    );
-  }
-  return (
-    <G>
-      <Line x1={cx + bw / 2 - 8} y1={top + 16} x2={hx} y2={hy + 4} stroke={P.arm} strokeWidth="12" strokeLinecap="round" />
-      <G transform={`translate(${hx} ${hy}) scale(1.5) translate(${-hx} ${-hy})`}>
-        {item}
-        <Ellipse cx={hx + 2} cy={hy + 5} rx="6" ry="5" fill={P.paw} />
-      </G>
-    </G>
-  );
+// Le dessin du compagnon : un starter (plante, eau, feu) ou le chat.
+export function PetDrawing({ species, ...rest }) {
+  return isStarter(species) ? <MonsterDrawing species={species} {...rest} /> : <CatDrawing {...rest} />;
 }
 
 // Phrases au hasard. {n} = prénom.
@@ -506,6 +304,15 @@ const SAY = {
   water: ['Glou glou…', 'Il faut boire de l’eau !', 'Bien hydraté, bien concentré.'],
   sleep: ['Zzz…', 'Mrrr… zzz…', 'Rrrr… pchhh…', 'Jour off… zzz…'],
   sleepTap: ['Mmh… ?', 'Mrrr…', '…encore cinq minutes…', 'Zzz… ronron…'],
+};
+// Phrases des starters (leur cri remplace le « Miaou »).
+const SAY_MON = {
+  any: ['Tu as coché tes habitudes ?', 'J’aime bien ton agenda.', 'Tu gères !', 'On s’entraîne aujourd’hui ?', 'Je deviens plus fort grâce à toi.', 'Une petite sieste et je reviens.'],
+  happy: ['Merci pour le festin !', 'Je me sens en forme !', 'Trop bien !', 'Meilleur dresseur du monde.'],
+  hungry: ['J’ai un peu faim…', 'Un festin, s’il te plaît ?', 'Coche 4 habitudes, s’il te plaît !'],
+  plante: ['Ça sent bon la forêt.', 'J’ai caché un gland quelque part…', 'Un peu de soleil et ça repart !'],
+  eau: ['Il faut boire de l’eau !', 'Je fais des bulles.', 'Le calme avant la vague.'],
+  feu: ['Je suis tout chaud !', 'Ma flamme brille fort aujourd’hui.', 'Allez, on s’enflamme !'],
 };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const cap1 = (x) => x.charAt(0).toUpperCase() + x.slice(1);
@@ -534,7 +341,8 @@ function FloatingHeart({ x, y, onDone }) {
 
 // Le chat vivant : il respire, cligne des yeux, bouge la queue, parle,
 // et réagit quand on le touche ou qu'on le caresse (glisser le doigt dessus).
-export default function Cat({ look, kind, stage, mood, size = 200, name, message, scene = null }) {
+export default function Cat({ look, kind, species, stage, mood, size = 200, name, message, scene = null }) {
+  const starter = isStarter(species);
   const breathe = useRef(new Animated.Value(0)).current;
   const hop = useRef(new Animated.Value(0)).current;
   const bubbleV = useRef(new Animated.Value(0)).current;
@@ -544,7 +352,7 @@ export default function Cat({ look, kind, stage, mood, size = 200, name, message
   const [hearts, setHearts] = useState([]);
   const [purring, setPurring] = useState(false);
   const live = useRef({});
-  live.current = { mood, stage, size, scene };
+  live.current = { mood, stage, size, scene, species };
   const hideT = useRef(null), purrT = useRef(null);
 
   const say = (txt, ms = 2200) => {
@@ -557,6 +365,11 @@ export default function Cat({ look, kind, stage, mood, size = 200, name, message
   const randomLine = () => {
     const { mood: m, stage: st, scene: sc } = live.current;
     if (sc && SAY[sc]) return pick(SAY[sc]);
+    const sp = live.current.species;
+    if (isStarter(sp)) {
+      const pool = [...SPECIES[sp].cry, ...SAY_MON.any, ...(SAY_MON[sp] || []), ...(m === 'hungry' ? SAY_MON.hungry.concat(SAY_MON.hungry) : m === 'happy' ? SAY_MON.happy : [])];
+      return pick(pool);
+    }
     const pool = [...SAY.any, ...(m === 'hungry' ? SAY.hungry.concat(SAY.hungry) : m === 'happy' ? SAY.happy : []), ...(st === 3 ? SAY.boss : [])];
     return pick(pool);
   };
@@ -629,7 +442,7 @@ export default function Cat({ look, kind, stage, mood, size = 200, name, message
         acc.current = 0;
         heart();
         purr();
-        if (Math.random() < 0.25) say(pick(live.current.scene === 'sleep' ? SAY.sleepTap : SAY.pet), 1500);
+        if (Math.random() < 0.25) say(pick(live.current.scene === 'sleep' ? SAY.sleepTap : isStarter(live.current.species) ? ['Hihi !', 'Encore !', 'Ça chatouille !', ...SPECIES[live.current.species].cry] : SAY.pet), 1500);
         try { Vibration.vibrate(10); } catch (err) {}
       }
     },
@@ -637,7 +450,7 @@ export default function Cat({ look, kind, stage, mood, size = 200, name, message
       if (Math.abs(g.dx) < 6 && Math.abs(g.dy) < 6) {
         // Endormi : il remue à peine sans se réveiller.
         if (live.current.scene === 'sleep') { say(pick(SAY.sleepTap), 1500); heart(); return; }
-        jump(); say(pick(SAY.tap), 1500); heart();
+        jump(); say(pick(isStarter(live.current.species) ? SPECIES[live.current.species].cry : SAY.tap), 1500); heart();
       }
     },
   })).current;
@@ -652,7 +465,7 @@ export default function Cat({ look, kind, stage, mood, size = 200, name, message
   const face = scene === 'walk' && Math.cos(time * 0.6) > 0 ? -1 : 1;
   const bob = scene === 'walk' ? -Math.abs(Math.sin(time * 7)) * 3 : 0;
   const il = look && look.sex === 'f' ? 'elle' : 'il';
-  const hint = sleeping ? (purring ? cap1(il) + ' ronronne en dormant…' : 'Chut, ' + il + ' fait la sieste') : purring ? 'Ronron…' : scene === 'work' ? 'On bosse ensemble' : scene ? 'C’est la pause' : 'Touche-le ou caresse-le avec le doigt';
+  const hint = sleeping ? (purring ? cap1(il) + (starter ? ' sourit en dormant…' : ' ronronne en dormant…') : 'Chut, ' + il + ' fait la sieste') : purring ? (starter ? cap1(il) + ' adore ça !' : 'Ronron…') : scene === 'work' ? 'On bosse ensemble' : scene ? 'C’est la pause' : 'Touche-le ou caresse-le avec le doigt';
   return (
     <View style={{ width: size, alignItems: 'center' }}>
       <Animated.View pointerEvents="none" style={{
@@ -664,7 +477,7 @@ export default function Cat({ look, kind, stage, mood, size = 200, name, message
         </View>
         <View style={{ alignSelf: 'center', width: 12, height: 12, backgroundColor: '#FFFFFF', transform: [{ rotate: '45deg' }], marginTop: -6 }} />
       </Animated.View>
-      <View {...pan.panHandlers} accessibilityRole="button" accessibilityLabel={'Caresser ' + (name || 'le chat')}
+      <View {...pan.panHandlers} accessibilityRole="button" accessibilityLabel={'Caresser ' + (name || 'ton compagnon')}
         style={{ paddingTop: 40, cursor: 'grab', userSelect: 'none' }}>
         <View style={{ transform: [{ translateX: walkX }, { translateY: bob + sleepBreath * 1.5 }, { scaleX: face }, { scaleY: 1 + sleepBreath * 0.012 }] }}>
         <Animated.View style={{
@@ -673,7 +486,7 @@ export default function Cat({ look, kind, stage, mood, size = 200, name, message
             { scaleY: breathe.interpolate({ inputRange: [0, 1], outputRange: [1, 1.015] }) },
           ],
         }}>
-          <CatDrawing look={look} kind={kind} stage={stage} mood={shownMood} size={size} tail={(purring || scene === 'walk') && !sleeping ? tail * 2 : tail} blink={blink && !purring && !sleeping} scene={scene} t={time} />
+          <PetDrawing species={species} look={look} kind={kind} stage={stage} mood={shownMood} size={size} tail={(purring || scene === 'walk') && !sleeping ? tail * 2 : tail} blink={blink && !purring && !sleeping} scene={scene} t={time} />
         </Animated.View>
         </View>
         {hearts.map((h) => <FloatingHeart key={h.id} x={h.x} y={40 + size * 0.42} onDone={() => setHearts((a) => a.filter((z) => z.id !== h.id))} />)}

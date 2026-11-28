@@ -37,7 +37,7 @@ npx expo start --web
 - `src/components/today.js` : les cartes de l'écran Aujourd'hui (habitudes, salle, humeur, tâches, programme).
 - `src/components/QuickAdd.js` : la fenêtre du bouton + (en haut à droite de chaque écran).
 - `src/components/pickers.js` : la roue des heures et le calendrier façon iPhone.
-- `src/pet/` : le compagnon (dessin des chats dans `Cat.js`, règles de nourriture et d'XP dans `rules.js`, pièces dans `coins.js`, boutique dans `Shop.js`, décorations de sa pièce dans `Room.js`).
+- `src/pet/` : le compagnon. Les trois starters (plante, eau, feu) et leurs tenues sont dessinés dans `Monster.js`, leurs noms, évolutions et prix dans `species.js`, l'écran de choix dans `Starters.js`. Le chat d'origine est dans `Cat.js`. Règles de nourriture, d'XP et de changement de starter dans `rules.js`, pièces dans `coins.js`, boutique dans `Shop.js`, décorations, murs, sols et lits dans `Room.js`.
 - `src/gym/` : le module Salle (programmes dans `programs.js`, séance en cours dans `GymModule.js`, silhouette des muscles dans `Figure.js`).
 
 ## Reprendre tes données de l'ancienne version
