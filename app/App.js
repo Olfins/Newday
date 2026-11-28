@@ -12,19 +12,19 @@ import { useStore } from './src/store';
 import Today from './src/screens/Today';
 import Week from './src/screens/Week';
 import Calendar from './src/screens/Calendar';
-import Pet from './src/screens/Pet';
+import Bonsai from './src/screens/Bonsai';
 import QuickAdd from './src/components/QuickAdd';
 import GymModule from './src/gym/GymModule';
 import { CoinRain } from './src/components/Coin';
-import { bank, earnedCoins, needsBank, GAIN_LABEL } from './src/pet/coins';
-import { CalIcon, HomeIcon, MoodIcon, MoonIcon, PawIcon, PlusIcon, WeekIcon } from './src/components/icons';
+import { bank, earnedCoins, needsBank, GAIN_LABEL } from './src/bonsai/coins';
+import { CalIcon, HomeIcon, MoonIcon, PlusIcon, SunIcon, TreeIcon, WeekIcon } from './src/components/icons';
 
-// Quatre onglets : Jour (aujourd'hui), Semaine, Calendrier (avec les progrès), Pet.
+// Quatre onglets : Jour (aujourd'hui), Semaine, Calendrier (avec les progrès), Bonsaï.
 const TABS = [
   { id: 'day', label: 'Jour', title: 'Aujourd’hui', screen: Today, Icon: HomeIcon },
   { id: 'week', label: 'Semaine', screen: Week, Icon: WeekIcon },
   { id: 'cal', label: 'Calendrier', screen: Calendar, Icon: CalIcon },
-  { id: 'pet', label: 'Pet', screen: Pet, Icon: PawIcon },
+  { id: 'tree', label: 'Bonsaï', screen: Bonsai, Icon: TreeIcon },
 ];
 
 export default function App() {
@@ -45,7 +45,7 @@ function Main() {
   const [cd, setCd] = useState(T); // jour sélectionné
   const [add, setAdd] = useState(null); // type d'ajout ouvert avec le bouton +
   const [gym, setGym] = useState(false); // module Salle ouvert
-  // Design choisi : « cozy » (chat, crème) ou « focus » (dark academia). Mémorisé sur l'appareil.
+  // Design choisi : « cozy » (crème) ou « focus » (dark academia). Mémorisé sur l'appareil.
   const [theme, setThemeName] = useState(null);
   useEffect(() => {
     AsyncStorage.getItem(THEME_KEY).then((v) => applyTheme(v || 'cozy')).catch(() => applyTheme('cozy'));
@@ -95,7 +95,7 @@ function Main() {
   const pick = (id) => setTab(id);
   const title = current.title || current.label;
   const addDay = tab === 'cal' ? cd : T;
-  const addKind = tab === 'week' || tab === 'pet' ? 'habit' : tab === 'cal' ? 'event' : 'todo';
+  const addKind = tab === 'week' || tab === 'tree' ? 'habit' : tab === 'cal' ? 'event' : 'todo';
 
   return (
     <View key={theme} style={{ flex: 1, backgroundColor: C.bg }}>
@@ -120,11 +120,11 @@ function Main() {
           <View style={{ flex: 1 }}>
             <Text style={{ fontFamily: C.serif, color: C.tx, fontSize: 32, fontWeight: '700', letterSpacing: -0.3 }}>{title}</Text>
           </View>
-          {/* Changer de design : Cozy (chat) ou Focus (sombre). */}
+          {/* Changer de design : Cozy ou Focus (sombre). */}
           <Pressable onPress={toggleTheme} accessibilityRole="button" hitSlop={6}
             accessibilityLabel={C.name === 'focus' ? 'Passer au design Cozy' : 'Passer au mode Focus'}
             style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: C.card, borderWidth: 1, borderColor: C.line, opacity: pressed ? 0.7 : 1 })}>
-            {C.name === 'focus' ? <MoodIcon size={20} color={C.pri} /> : <MoonIcon size={19} color={C.pri} />}
+            {C.name === 'focus' ? <SunIcon size={20} color={C.pri} /> : <MoonIcon size={19} color={C.pri} />}
           </Pressable>
           {/* Ajouter (tâche, événement, examen, habitude) : en haut, pas dans le menu. */}
           <Pressable onPress={() => setAdd(addKind)} accessibilityRole="button" accessibilityLabel="Ajouter" hitSlop={6}

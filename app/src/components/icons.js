@@ -45,6 +45,15 @@ export const PawIcon = ({ size = 22, color = C.tx }) => (
     <Circle cx="5.5" cy="10" r="1.8" /><Circle cx="9.5" cy="5.5" r="1.8" /><Circle cx="14.5" cy="5.5" r="1.8" /><Circle cx="18.5" cy="10" r="1.8" />
   </Svg>
 );
+// Bonsaï : un petit arbre dans son pot.
+export const TreeIcon = ({ size = 22, color = C.tx }) => (
+  <Svg {...base(size, color)}>
+    <Path d="M12 17v-5c0-1.6-1-2.6-2.6-3" />
+    <Path d="M12 13c1-.9 2.2-1.3 3.6-1.3" />
+    <Path d="M5.5 9c0-1.6 1.6-2.8 3.4-2.8.6-1.7 2.2-2.7 4-2.4 1.7.2 2.9 1.4 3.1 3 1.6.2 2.6 1.3 2.5 2.6-.1 1.2-1.2 2-2.6 2H8c-1.5 0-2.5-1-2.5-2.4z" />
+    <Path d="M6.5 17h11l-1.2 3.5H7.7z" />
+  </Svg>
+);
 export const PlusIcon = ({ size = 22, color = C.tx }) => (
   <Svg {...base(size, color)}><Line x1="12" y1="5" x2="12" y2="19" /><Line x1="5" y1="12" x2="19" y2="12" /></Svg>
 );
@@ -57,11 +66,11 @@ export const DumbbellIcon = ({ size = 18, color = C.pri }) => (
   </Svg>
 );
 export const MoodIcon = ({ size = 18, color = C.pri }) => (
-  <Svg {...base(size, color)}><Path d="M4.3 11.4L4.7 3.8L9.2 7.3Q12 6.5 14.8 7.3L19.3 3.8L19.7 11.4Q20.9 19.6 12 20.6Q3.1 19.6 4.3 11.4Z" /><Path d="M9.8 15.6q1.1 1.2 2.2 0q1.1 1.2 2.2 0" /><Circle cx="9" cy="12.4" r=".7" /><Circle cx="15" cy="12.4" r=".7" /></Svg>
+  <Svg {...base(size, color)}><Circle cx="12" cy="12" r="8.5" /><Path d="M9 14.6q3 2.6 6 0" /><Circle cx="9.3" cy="10.2" r=".7" /><Circle cx="14.7" cy="10.2" r=".7" /></Svg>
 );
 
-// Humeur de 1 (mal) à 5 (super) : une tête de chat dessinée au trait.
-const HEAD = 'M4.3 11.4L4.7 3.8L9.2 7.3Q12 6.5 14.8 7.3L19.3 3.8L19.7 11.4Q20.9 19.6 12 20.6Q3.1 19.6 4.3 11.4Z';
+// Humeur de 1 (mal) à 5 (super) : un visage rond et sobre, dessiné au trait.
+const HEAD = 'M12 2.6a9.4 9.4 0 1 0 0.01 0z';
 export function Face({ level, size = 28, on }) {
   const f = on ? C.onPri : C.mu;
   const line = { stroke: f, strokeWidth: 1.5, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' };
@@ -71,7 +80,6 @@ export function Face({ level, size = 28, on }) {
       {dots(1)}
       <Path d="M7.4 11.1L10.1 10.1M16.6 11.1L13.9 10.1" {...line} />
       <Path d="M10.1 17.7q1.9-1.7 3.8 0" {...line} />
-      <Path d="M8.6 14.4q-0.9 1.4 0 2q0.9-0.6 0-2z" fill="#8DC3EE" />
     </>),
     2: (<>
       <Path d="M7.8 12.8h2.4M13.8 12.8h2.4" {...line} />
@@ -88,22 +96,21 @@ export function Face({ level, size = 28, on }) {
     5: (<>
       <Path d="M7.7 13.2q1.3-1.8 2.6 0M13.7 13.2q1.3-1.8 2.6 0" {...line} />
       <Path d="M9.9 15.7q2.1 3.1 4.2 0z" fill={f} />
-      <Ellipse cx="7" cy="15.4" rx="1.3" ry="0.75" fill="#E8738A" opacity="0.7" />
-      <Ellipse cx="17" cy="15.4" rx="1.3" ry="0.75" fill="#E8738A" opacity="0.7" />
     </>),
   };
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path d={HEAD} fill={on ? C.pri : C.card} stroke={on ? C.pri : C.ring} strokeWidth="1.3" strokeLinejoin="round" />
-      <Path d="M11.2 14.5h1.6L12 15.3z" fill={on ? '#E9A3B4' : f} stroke={on ? '#E9A3B4' : f} strokeWidth="0.6" strokeLinejoin="round" />
-      <Path d="M1.8 14.1l3.2 0.3M2.1 16.3l3-0.7M22.2 14.1l-3.2 0.3M21.9 16.3l-3-0.7" stroke={on ? C.pri : C.ring} strokeWidth="0.9" strokeLinecap="round" />
       {parts[level]}
     </Svg>
   );
 }
 export const MOOD_LABELS = ['', 'Mal', 'Bof', 'Moyen', 'Bien', 'Super'];
 
-// Changer de design : une lune pour passer en mode Focus, une tête de chat pour revenir en Cozy.
+// Changer de design : une lune pour passer en mode Focus, un soleil pour revenir en Cozy.
+export const SunIcon = ({ size = 20, color = C.tx }) => (
+  <Svg {...base(size, color)}><Circle cx="12" cy="12" r="4" /><Path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" /></Svg>
+);
 export const MoonIcon = ({ size = 20, color = C.tx }) => (
   <Svg {...base(size, color)}><Path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" /></Svg>
 );

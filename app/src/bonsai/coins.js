@@ -1,12 +1,12 @@
 // Les pièces : on les gagne en faisant ses habitudes, ses tâches et ses rendez-vous,
-// et on les dépense dans la boutique de l'onglet Pet.
+// et on les dépense dans la boutique de l'onglet Bonsaï (pots, sellettes, bibliothèque, objets).
 //
 // Comment c'est compté :
 // - Aujourd'hui, les pièces suivent ce qui est coché (décocher les retire, recocher les rend :
 //   on ne peut pas gagner deux fois la même habitude).
 // - Chaque jour passé est ensuite « mis à la banque » (s.coins.past) : supprimer une vieille
 //   tâche ou une habitude ne fait jamais perdre de pièces.
-// - Au premier lancement, les jours depuis l'adoption du chat sont comptés : c'est le cadeau de départ.
+// - Au premier lancement, les jours depuis le début du suivi (s.tree.since) sont comptés : c'est le cadeau de départ.
 import { addDays, hm } from '../dates';
 import { nh } from '../stats';
 
@@ -38,17 +38,17 @@ export function dayParts(S, k, T, now) {
 }
 const sum = (p) => Object.values(p).reduce((a, v) => a + v, 0);
 
-// Depuis quand on compte : le lendemain du dernier jour mis à la banque, sinon l'adoption.
-const startOf = (S) => (S.coins && S.coins.thru ? addDays(S.coins.thru, 1) : S.pet ? S.pet.since : null);
+// Depuis quand on compte : le lendemain du dernier jour mis à la banque, sinon le début du suivi.
+const startOf = (S) => (S.coins && S.coins.thru ? addDays(S.coins.thru, 1) : S.tree ? S.tree.since : null);
 
 // Met à la banque les jours passés pas encore comptés. Renvoie true si quelque chose a changé.
 export function needsBank(S, T) {
-  if (!S.pet) return false;
+  if (!S.tree) return false;
   const st = startOf(S);
   return !S.coins || (st && st < T);
 }
 export function bank(s, T) {
-  if (!s.pet) return;
+  if (!s.tree) return;
   const c = s.coins || (s.coins = { past: 0, spent: 0, thru: null });
   const now = hm(new Date());
   let k = startOf(s), n = 0;
@@ -59,7 +59,7 @@ export function bank(s, T) {
 
 // Pièces gagnées au total (banque + aujourd'hui), et le détail d'aujourd'hui.
 export function earnedCoins(S, T) {
-  if (!S.pet || !S.coins) return null;
+  if (!S.tree || !S.coins) return null;
   const today = dayParts(S, T, T, hm(new Date()));
   return { total: S.coins.past + sum(today), today };
 }
@@ -72,22 +72,21 @@ export function wallet(S, T) {
 }
 
 // ---- Boutique ----
-export const owns = (S, id) => !!(S.shop && S.shop.own && S.shop.own[id]);
+// s.lib = { own: { 'pot:celadon': '2026-11-28', ... }, set: { pot, stand, wood, wall, obj } }
+export const owns = (S, id) => !!(S.lib && S.lib.own && S.lib.own[id]);
+const libOf = (s) => { s.lib = s.lib || {}; s.lib.own = s.lib.own || {}; s.lib.set = s.lib.set || {}; return s.lib; };
 
-// Achète un objet (id comme « acc:couronne », « out:smoking » ou « deco:plante »).
+// Achète un objet (id comme « pot:celadon » ou « obj:globe »).
 export function buy(s, T, id, price) {
   if (owns(s, id) || wallet(s, T) < price) return false;
-  s.shop = s.shop || { own: {}, room: {} };
-  s.shop.own = s.shop.own || {};
-  s.shop.own[id] = T;
+  libOf(s).own[id] = T;
   s.coins.spent = (s.coins.spent || 0) + price;
   return true;
 }
 
-// Place (ou range) une décoration dans la pièce. Une seule décoration par emplacement.
-export function place(s, slot, key) {
-  s.shop = s.shop || { own: {}, room: {} };
-  s.shop.room = s.shop.room || {};
-  if (s.shop.room[slot] === key) delete s.shop.room[slot];
-  else s.shop.room[slot] = key;
+// Utilise un objet dans sa catégorie (une seule à la fois). key = null : retour au choix de base.
+export function equip(s, cat, key) {
+  const l = libOf(s);
+  if (key == null) delete l.set[cat];
+  else l.set[cat] = key;
 }

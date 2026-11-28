@@ -3,6 +3,7 @@
 // pour qu'une sauvegarde de l'ancienne app puisse être restaurée ici.
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useState } from 'react';
+import { today } from './dates';
 
 export const KEY = 'lockin.v1';
 
@@ -38,6 +39,12 @@ export function normalize(o) {
   s.ws = Array.isArray(s.ws) ? s.ws : [];
   s.h.forEach((h) => (h.e = ''));
   delete s.theme;
+  // Le bonsaï remplace l'ancien compagnon. Les pièces suivent la date de début du suivi,
+  // et les pièces dépensées pour l'ancien compagnon (tenues, déco) sont rendues une fois.
+  if (!s.tree || typeof s.tree !== 'object') {
+    s.tree = { since: (s.pet && s.pet.since) || today() };
+    if (s.pet && s.coins && s.coins.spent) { s.tree.refund = s.coins.spent; s.coins.spent = 0; }
+  }
   // Anciennes données : la salle validée coche aussi l'habitude Salle.
   const gid = gymHabitId(s);
   if (gid) Object.keys(s.gym).forEach((k) => { const a = s.d[k] || (s.d[k] = []); if (!a.includes(gid)) a.push(gid); });

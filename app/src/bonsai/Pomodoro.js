@@ -1,5 +1,5 @@
-// Pomodoro : un temps de travail, puis une pause. Le chat bosse avec toi,
-// puis prend une pause au hasard (café, marche, en-cas ou verre d'eau).
+// Pomodoro : un temps de travail, puis une pause. La pause propose au hasard
+// un café, quelques pas, un en-cas ou un verre d'eau.
 // L'état est enregistré dans S.pomo, donc il survit si on ferme l'app.
 import React, { useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, Text, Vibration, View } from 'react-native';
@@ -14,10 +14,10 @@ export const PRESETS = [
 ];
 export const BREAKS = ['coffee', 'walk', 'snack', 'water'];
 export const BREAK_TEXT = {
-  coffee: 'boit un café',
-  walk: 'marche un peu pour s’aérer',
-  snack: 'grignote un petit truc',
-  water: 'boit un verre d’eau',
+  coffee: 'Pause : prends un café.',
+  walk: 'Pause : marche un peu pour t’aérer.',
+  snack: 'Pause : un petit en-cas.',
+  water: 'Pause : bois un verre d’eau.',
 };
 
 const blank = () => ({ ph: 'idle', end: 0, left: 0, paused: false, w: 25, b: 5, scene: null, days: {} });
@@ -126,7 +126,7 @@ export function usePomodoro(S, update, T, onChange) {
 }
 
 // La carte avec le minuteur et les boutons.
-export function PomodoroCard({ S, update, T, timer, name }) {
+export function PomodoroCard({ S, update, T, timer }) {
   const { p, now } = timer;
   const left = remaining(p, now);
   const total = (p.ph === 'break' ? p.b : p.w) * 60000;
@@ -134,10 +134,10 @@ export function PomodoroCard({ S, update, T, timer, name }) {
   const done = (p.days && p.days[T]) || 0;
   const label = p.ph === 'work' ? 'Au travail' : p.ph === 'break' ? 'Pause' : 'Prêt';
   const sub = p.ph === 'work'
-    ? name + ' bosse avec toi devant le PC.'
+    ? 'Une brique de plus. Reste sur une seule chose.'
     : p.ph === 'break'
-      ? name + ' ' + BREAK_TEXT[p.scene] + '.'
-      : 'Lance un temps de travail : ' + name + ' s’installe à son bureau.';
+      ? BREAK_TEXT[p.scene] || 'Pause.'
+      : 'Lance un temps de travail concentré, puis une courte pause.';
   const act = (fn) => { unlockAudio(); update((s) => fn(s, Date.now(), T)); };
 
   return (
