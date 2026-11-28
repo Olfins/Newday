@@ -1,11 +1,35 @@
 // Les briques visuelles réutilisées dans tous les écrans.
 import React from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { C } from '../theme';
 
-export const Card = ({ children, style, hero }) => (
-  <View style={[s.card, hero && s.hero, style]}>{children}</View>
-);
+// Carte. En design « Verre », un léger reflet de verre dépoli éclaire le haut de la carte.
+// glow : 'a' (reflet bleu) ou 'b' (reflet ambre) en bas de la carte, comme les widgets iOS.
+export const Card = ({ children, style, hero, glow, glowOn = true }) => {
+  if (!C.glass) return <View style={[s.card, hero && s.hero, style]}>{children}</View>;
+  const rgb = glow === 'a' ? C.glowA : glow === 'b' ? C.glowB : null;
+  return (
+    <View style={[s.card, hero && s.hero, { overflow: 'hidden' }, style]}>
+      <LinearGradient colors={['rgba(255,255,255,0.11)', 'rgba(255,255,255,0.03)', 'rgba(255,255,255,0.015)']} locations={[0, 0.45, 1]}
+        style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }} pointerEvents="none" />
+      {rgb ? (
+        <Svg pointerEvents="none" width="100%" height="85%" preserveAspectRatio="none" viewBox="0 0 100 100" style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
+          <Defs>
+            <RadialGradient id={'glow' + glow + (glowOn ? 1 : 0)} cx="50%" cy="100%" r="100%" fx="50%" fy="100%">
+              <Stop offset="0" stopColor={`rgb(${rgb})`} stopOpacity={glowOn ? 0.9 : 0.45} />
+              <Stop offset="0.5" stopColor={`rgb(${rgb})`} stopOpacity={glowOn ? 0.32 : 0.14} />
+              <Stop offset="1" stopColor={`rgb(${rgb})`} stopOpacity={0} />
+            </RadialGradient>
+          </Defs>
+          <Rect x="0" y="0" width="100" height="100" fill={`url(#glow${glow}${glowOn ? 1 : 0})`} />
+        </Svg>
+      ) : null}
+      {children}
+    </View>
+  );
+};
 
 export const H = ({ children, style }) => <Text style={[s.h, style]}>{children}</Text>;
 export const Mu = ({ children, style }) => <Text style={[s.mu, style]}>{children}</Text>;
@@ -122,12 +146,13 @@ export const restyle = () => Object.assign(s, makeStyles());
 const makeStyles = () => ({
   card: {
     backgroundColor: C.card,
-    borderRadius: 22,
+    borderRadius: C.radius,
     padding: 16,
     borderWidth: 1,
     borderColor: C.line,
+    ...(C.glass ? { backdropFilter: 'blur(24px) saturate(160%)', WebkitBackdropFilter: 'blur(24px) saturate(160%)' } : null),
   },
-  hero: { borderColor: C.accLine },
+  hero: { borderColor: C.glass ? 'rgba(255,255,255,0.16)' : C.accLine },
   h: { color: C.tx, fontSize: 17, fontWeight: '700', fontFamily: C.serif, marginBottom: 4 },
   mu: { color: C.mu, fontSize: 13 },
   tx: { color: C.tx, fontSize: 15 },

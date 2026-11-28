@@ -153,10 +153,10 @@ export function GymCard({ S, update, T, k, style, onOpen }) {
     : (g && g.i && g.o && duration(g.i, g.o) ? g.i + '–' + g.o + ' · ' + duration(g.i, g.o) : 'Séance validée');
   const label = k !== T ? (state === 'out' ? 'Valider' : 'Décocher') : state === 'run' ? 'Reprendre' : state === 'out' ? 'Commencer' : 'Ouvrir';
   return (
-    <Card style={[{ flex: 1, overflow: 'hidden' }, style]}>
-      <LinearGradient colors={[`rgba(${C.accRgb},0)`, on ? `rgba(${C.accRgb},0.22)` : `rgba(${C.accRgb},0.08)`]}
-        style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '70%' }} pointerEvents="none" />
-      <Row style={{ gap: 6 }}><DumbbellIcon color={C.acc} /><H style={{ marginBottom: 0 }}>Salle</H></Row>
+    <Card glow="a" glowOn={on} style={[{ flex: 1, overflow: 'hidden' }, style]}>
+      {!C.glass ? <LinearGradient colors={[`rgba(${C.accRgb},0)`, on ? `rgba(${C.accRgb},0.22)` : `rgba(${C.accRgb},0.08)`]}
+        style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '70%' }} pointerEvents="none" /> : null}
+      <Row style={{ gap: 6 }}><DumbbellIcon color={C.glass ? '#FFFFFF' : C.acc} /><H style={{ marginBottom: 0 }}>Salle</H></Row>
       <Pressable
         onPress={press}
         disabled={fut}
@@ -165,13 +165,14 @@ export function GymCard({ S, update, T, k, style, onOpen }) {
         style={{
           width: 64, height: 64, borderRadius: 32, alignSelf: 'center', marginTop: 12,
           alignItems: 'center', justifyContent: 'center', borderWidth: 2,
-          borderColor: on ? C.pri : C.accLine, backgroundColor: state === 'done' ? C.pri : C.accSoft,
+          borderColor: C.glass ? 'rgba(255,255,255,0.85)' : on ? C.pri : C.accLine,
+          backgroundColor: C.glass ? 'rgba(255,255,255,0.08)' : state === 'done' ? C.pri : C.accSoft,
           opacity: fut ? 0.35 : 1,
         }}
       >
-        {state === 'done' ? <CheckIcon size={30} color={C.onPri} width={2.6} />
+        {state === 'done' ? <CheckIcon size={30} color={C.glass ? '#FFFFFF' : C.onPri} width={2.6} />
           : state === 'run' ? <Text style={{ color: C.pri, fontWeight: '700', fontSize: 12 }}>EN COURS</Text>
-          : <DumbbellIcon size={26} color={C.acc} />}
+          : <DumbbellIcon size={26} color={C.glass ? '#FFFFFF' : C.acc} />}
       </Pressable>
       <Text style={{ color: C.mu, fontSize: 12, textAlign: 'center', marginTop: 8 }} numberOfLines={1}>{info}</Text>
       <Btn
@@ -197,10 +198,10 @@ export function MoodCard({ S, update, T, k, style }) {
   const m = S.m[k] || 0;
   const fut = k > T;
   return (
-    <Card style={[{ flex: 1, overflow: 'hidden' }, style]}>
-      <LinearGradient colors={[`rgba(${C.priRgb},0)`, m ? `rgba(${C.priRgb},0.16)` : `rgba(${C.priRgb},0.06)`]}
-        style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '70%' }} pointerEvents="none" />
-      <Row style={{ gap: 6 }}><MoodIcon color={C.acc} /><H style={{ marginBottom: 0 }}>Humeur</H></Row>
+    <Card glow="b" glowOn={!!m} style={[{ flex: 1, overflow: 'hidden' }, style]}>
+      {!C.glass ? <LinearGradient colors={[`rgba(${C.priRgb},0)`, m ? `rgba(${C.priRgb},0.16)` : `rgba(${C.priRgb},0.06)`]}
+        style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '70%' }} pointerEvents="none" /> : null}
+      <Row style={{ gap: 6 }}><MoodIcon color={C.glass ? '#FFFFFF' : C.acc} /><H style={{ marginBottom: 0 }}>Humeur</H></Row>
       <View style={{ flex: 1, justifyContent: 'center' }}>
         <MoodPicker value={m} disabled={fut} size={26} onPick={(n) => update((s) => setMood(s, k, n))} />
       </View>
@@ -235,7 +236,7 @@ export function TodoCard({ S, update, T }) {
       </Row>
       {tl.map(({ t, i }) => (
         <Row key={i} style={{ paddingVertical: 8, gap: 10 }}>
-          <View style={{ width: 3, height: 16, borderRadius: 2, backgroundColor: t.x ? C.line : C.pri }} />
+          <View style={{ width: 3, height: 16, borderRadius: 2, backgroundColor: t.x ? C.line : C.todo ? C.todo[i % C.todo.length] : C.pri }} />
           <Text style={{ flex: 1, color: t.x ? C.mu : C.tx, textDecorationLine: t.x ? 'line-through' : 'none' }}>{t.t}</Text>
           <Icon label="✕" a11y={'Supprimer ' + t.t} onPress={() => update((s) => s.t.splice(i, 1))} style={{ width: 24, height: 24 }} />
           <Pressable

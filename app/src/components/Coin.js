@@ -1,17 +1,33 @@
-// La pièce dorée (gravée d'une feuille) et la pluie de pièces qui tombe quand on en gagne.
+// La pièce en chrome (gravée d'une feuille) et la pluie de pièces qui tombe quand on en gagne.
+// Les pièces sont argentées (chrome) dans tous les designs.
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, Text, View, useWindowDimensions } from 'react-native';
-import Svg, { Circle, Ellipse, G, Path } from 'react-native-svg';
+import Svg, { Circle, Defs, Ellipse, LinearGradient, Path, Stop } from 'react-native-svg';
 
+// Pièce en chrome : dégradés argentés, reflet net et feuille gravée.
 export function Coin({ size = 18 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Circle cx="12" cy="12" r="11.2" fill="#D9A62E" />
-      <Circle cx="12" cy="11.4" r="10" fill="#F2C14C" />
-      <Circle cx="12" cy="11.4" r="7.6" fill="none" stroke="#D9A62E" strokeWidth="1.2" />
-      <Path d="M8 15.4c0-4 2.6-6.6 7.6-7.2-.3 5-2.9 7.6-6.6 7.6-.4 0-.7-.1-1-.4z" fill="#C08F22" />
-      <Path d="M8.6 15.2l4.6-4.6" stroke="#F2C14C" strokeWidth="0.9" strokeLinecap="round" />
-      <Ellipse cx="8.4" cy="6.6" rx="2.2" ry="1" fill="#FFF3C4" opacity="0.7" transform="rotate(-35 8.4 6.6)" />
+      <Defs>
+        <LinearGradient id="chromeRim" x1="0" y1="0" x2="1" y2="1">
+          <Stop offset="0" stopColor="#FFFFFF" />
+          <Stop offset="0.35" stopColor="#8E959E" />
+          <Stop offset="0.6" stopColor="#E9ECEF" />
+          <Stop offset="1" stopColor="#5E656E" />
+        </LinearGradient>
+        <LinearGradient id="chromeFace" x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#F4F6F8" />
+          <Stop offset="0.48" stopColor="#B9C0C8" />
+          <Stop offset="0.52" stopColor="#8A929B" />
+          <Stop offset="1" stopColor="#D9DEE3" />
+        </LinearGradient>
+      </Defs>
+      <Circle cx="12" cy="12" r="11.2" fill="url(#chromeRim)" />
+      <Circle cx="12" cy="12" r="9.4" fill="url(#chromeFace)" />
+      <Circle cx="12" cy="12" r="7.4" fill="none" stroke="#7A828B" strokeWidth="0.8" opacity="0.8" />
+      <Path d="M8 15.8c0-4 2.6-6.6 7.6-7.2-.3 5-2.9 7.6-6.6 7.6-.4 0-.7-.1-1-.4z" fill="#6E767F" />
+      <Path d="M8.6 15.6l4.6-4.6" stroke="#E4E8EC" strokeWidth="0.9" strokeLinecap="round" />
+      <Ellipse cx="8.2" cy="6.4" rx="3" ry="1.1" fill="#FFFFFF" opacity="0.85" transform="rotate(-35 8.2 6.4)" />
     </Svg>
   );
 }
@@ -73,10 +89,10 @@ export function CoinRain({ amount, label, onDone }) {
         position: 'absolute', top: 70, alignSelf: 'center',
         opacity: pill, transform: [{ scale: pill.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }],
       }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 9, paddingHorizontal: 16, borderRadius: 999, backgroundColor: '#FFFDF5', shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 9, paddingHorizontal: 16, borderRadius: 999, backgroundColor: '#1C1C1E', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } }}>
           <Coin size={22} />
-          <Text style={{ color: '#8A6418', fontSize: 17, fontWeight: '800' }}>+{amount}</Text>
-          {label ? <Text style={{ color: '#5B4A3A', fontSize: 14, fontWeight: '600' }}>{label}</Text> : null}
+          <Text style={{ color: '#FFFFFF', fontSize: 17, fontWeight: '800' }}>+{amount}</Text>
+          {label ? <Text style={{ color: 'rgba(235,235,245,0.7)', fontSize: 14, fontWeight: '600' }}>{label}</Text> : null}
         </View>
       </Animated.View>
     </View>

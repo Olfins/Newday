@@ -59,24 +59,25 @@ export function setupOf(S) {
   return out;
 }
 
-// Couleurs de la pièce selon le design (Cozy clair ou Focus sombre) et les choix.
+// Couleurs de la pièce (design sombre) selon les choix de la boutique.
 export function palette(setup) {
   const dark = C.dark;
   const w = WOODS[setup.wood] || {};
   const wl = WALLS[setup.wall] || {};
+  const gl = C.glass;
   return {
     dark,
-    wall: wl.color || (dark ? '#1B1714' : '#E8DDC8'),
-    wall2: wl.color ? shade(wl.color, -10) : dark ? '#15120F' : '#DED1B8',
+    wall: wl.color || (gl ? '#0E0E10' : dark ? '#1B1714' : '#E8DDC8'),
+    wall2: wl.color ? shade(wl.color, -10) : gl ? '#17171B' : dark ? '#15120F' : '#DED1B8',
     stripes: setup.wall === 'raye',
     lambris: setup.wall === 'lambris',
-    floor: dark ? '#221B16' : '#B99B72',
+    floor: gl ? '#161412' : dark ? '#221B16' : '#B99B72',
     floorLine: dark ? '#17120F' : '#A3865F',
     wood: w.wood || (dark ? '#4A3423' : '#9C7A52'),
     back: w.back || (dark ? '#2A1D14' : '#6E5236'),
     edge: w.edge || (dark ? '#5C412D' : '#B08C61'),
-    glow: dark ? '#C9A66B' : '#FFF6DC',
-    glowA: dark ? 0.16 : 0.75,
+    glow: gl ? '#FFD9A0' : dark ? '#C9A66B' : '#FFF6DC',
+    glowA: gl ? 0.2 : dark ? 0.16 : 0.75,
     gold: dark ? '#C9A66B' : '#C8A24E',
     books: dark
       ? ['#6E2B2B', '#2E4A3B', '#2C3B57', '#7A6230', '#4E3B30', '#5A4060', '#2F5252']

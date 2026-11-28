@@ -11,7 +11,7 @@ import { Btn, Card, Mu, Row } from '../components/ui';
 import { TreeArt } from '../bonsai/Bonsai';
 import { growthOf } from '../bonsai/growth';
 import { setupOf } from '../bonsai/items';
-import { DayHabits, GymCard, MoodCard, NowCard, Schedule, TodoCard } from '../components/today';
+import { HabitGrid, GymCard, MoodCard, NowCard, Schedule, TodoCard } from '../components/today';
 
 async function readPicked(asset) {
   if (asset.file && asset.file.text) return asset.file.text();
@@ -66,7 +66,7 @@ export default function Today({ S, update, T, wide, openAdd, openGym }) {
   const left = (
     <View style={{ gap: 14 }}>
       <NowCard S={S} T={T} k={k} onAdd={() => openAdd('event')} />
-      <DayHabits S={S} update={update} k={k} />
+      <HabitGrid S={S} update={update} T={T} k={k} />
       <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
         <GymCard S={S} update={update} T={T} k={k} onOpen={openGym} />
         <MoodCard S={S} update={update} T={T} k={k} />
@@ -76,9 +76,11 @@ export default function Today({ S, update, T, wide, openAdd, openGym }) {
   );
   const right = (
     <View style={{ gap: 10 }}>
-      <Card style={wide ? null : { backgroundColor: 'transparent', borderWidth: 0, padding: 2 }}>
-        <Schedule S={S} update={update} T={T} k={k} onAdd={() => openAdd('event')} />
-      </Card>
+      {wide ? (
+        <Card><Schedule S={S} update={update} T={T} k={k} onAdd={() => openAdd('event')} /></Card>
+      ) : (
+        <View style={{ padding: 2 }}><Schedule S={S} update={update} T={T} k={k} onAdd={() => openAdd('event')} /></View>
+      )}
       <Row style={{ justifyContent: 'center', flexWrap: 'wrap' }}>
         <Btn label="Importer un agenda (.ics)" ghost onPress={importICS} textStyle={{ fontSize: 13 }} />
         <Btn label="Jour off" ghost onPress={() => update((s) => toggleOff(s, k))} textStyle={{ fontSize: 13 }} />
