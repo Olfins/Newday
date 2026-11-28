@@ -11,7 +11,7 @@ import { Btn, Card, Mu, Row } from '../components/ui';
 import { TreeArt } from '../bonsai/Bonsai';
 import { growthOf } from '../bonsai/growth';
 import { setupOf } from '../bonsai/items';
-import { HabitGrid, GymCard, MoodCard, NowCard, Schedule, TodoCard } from '../components/today';
+import { DayHabits, GymCard, MoodCard, NowCard, Schedule, TodoCard } from '../components/today';
 
 async function readPicked(asset) {
   if (asset.file && asset.file.text) return asset.file.text();
@@ -66,7 +66,7 @@ export default function Today({ S, update, T, wide, openAdd, openGym }) {
   const left = (
     <View style={{ gap: 14 }}>
       <NowCard S={S} T={T} k={k} onAdd={() => openAdd('event')} />
-      <HabitGrid S={S} update={update} T={T} k={k} />
+      <DayHabits S={S} update={update} k={k} />
       <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
         <GymCard S={S} update={update} T={T} k={k} onOpen={openGym} />
         <MoodCard S={S} update={update} T={T} k={k} />

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { C, typeColor, TYPES } from '../theme';
-import { addDays, duration, fmt, hm, letter, LETTERS, minutes, mondayOf, toDate, weekOf } from '../dates';
+import { addDays, cap, duration, fmt, hm, letter, LETTERS, minutes, mondayOf, toDate, weekOf } from '../dates';
 import { has, visibleTodos } from '../stats';
 import { gymCheckIn, gymCheckOut, gymDone, gymReset, removeEvent, setMood, toggleHabit } from '../store';
 import { AddRow, Btn, Card, H, Icon, Mu, Row } from './ui';
@@ -59,9 +59,15 @@ export function DayHabits({ S, update, k, dot = 30 }) {
   return (
     <Card>
       <Row style={{ justifyContent: 'space-between' }}>
-        <H style={{ marginBottom: 0 }}>Habitudes</H>
-        <Text style={{ color: C.mu, fontSize: 13 }}>{done} / {S.h.length}</Text>
+        <View>
+          <H style={{ marginBottom: 0 }}>Habitudes du jour</H>
+          <Text style={{ color: C.mu, fontSize: 12, marginTop: 1 }}>{cap(fmt(k, { weekday: 'long', day: 'numeric', month: 'long' }))}</Text>
+        </View>
+        <View style={{ paddingVertical: 3, paddingHorizontal: 10, borderRadius: 999, backgroundColor: C.card2, borderWidth: 1, borderColor: C.line }}>
+          <Text style={{ color: C.tx, fontSize: 12, fontWeight: '600' }}>{done} / {S.h.length}</Text>
+        </View>
       </Row>
+      {!S.h.length ? <Mu style={{ marginTop: 8 }}>Ajoute une habitude avec le bouton +.</Mu> : null}
       {S.h.map((h) => {
         const on = has(S, k, h.id);
         return (
@@ -71,7 +77,7 @@ export function DayHabits({ S, update, k, dot = 30 }) {
             <Text style={{ flex: 1, color: on ? C.mu : C.tx, fontSize: 15, textDecorationLine: on ? 'line-through' : 'none' }} numberOfLines={1}>{h.n}</Text>
             <View style={{
               width: dot, height: dot, borderRadius: dot / 2, alignItems: 'center', justifyContent: 'center',
-              backgroundColor: on ? C.pri : 'transparent', borderWidth: 1.4, borderColor: on ? C.pri : C.accLine,
+              backgroundColor: on ? C.pri : 'transparent', borderWidth: 1.4, borderColor: on ? C.pri : C.ring,
             }}>
               {on ? <CheckIcon size={dot * 0.6} color={C.onPri} width={3} /> : null}
             </View>
